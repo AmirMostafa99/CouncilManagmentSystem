@@ -30,9 +30,10 @@ namespace CouncilsManagmentSystem.Controllers
         private readonly IDepartmentServies _departmentServies;
         public readonly ICollageServies _collageServies;
         private readonly IWebHostEnvironment _environment;
+        private readonly ICouncilMembersServies _councilMembersServies;
 
         // private readonly JwtConfig _jwtConfig;
-        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService , RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies)
+        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService , RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies, ICouncilMembersServies councilMembersServies)
         {
             _context = context;
             _usermanager = usermanager;
@@ -45,6 +46,7 @@ namespace CouncilsManagmentSystem.Controllers
             _environment = environment;
             _collageServies = collageServies;
             _departmentServies = departmentServies;
+            _councilMembersServies = councilMembersServies;
         }
 
         //[Authorize(Roles = "SuperAdmin,SubAdmin")]
@@ -580,6 +582,13 @@ namespace CouncilsManagmentSystem.Controllers
             var token = JwtTokenHandler.CreateToken(TokenDescriptor);
             var jwtToken = JwtTokenHandler.WriteToken(token);
             return jwtToken;
+        }
+
+        [HttpGet(template: "GetAllNextCouncilByidUser")]
+        public async Task<IActionResult> getallnextcouncilbyiduser(string idmember)
+        {
+            var councils = await _councilMembersServies.GetAllNextCouncilsbyidmember(idmember);
+            return Ok(councils);
         }
 
     }

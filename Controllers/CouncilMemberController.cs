@@ -136,5 +136,13 @@ namespace CouncilsManagmentSystem.Controllers
 
         }
 
+
+        [HttpGet(template: "GetAllUserInCounilType")]
+        public async Task<IActionResult> getAllUserInCounilType(int idtypecouncil)
+        {
+            var users = await _councilMemberService.getAllUserInDep(idtypecouncil);
+            return Ok(users);
+        }
+
     }
 }

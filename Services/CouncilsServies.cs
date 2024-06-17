@@ -18,15 +18,19 @@ namespace CouncilsManagmentSystem.Services
 
         public async Task<string> AddCouncil(Councils council)
         {
-            var type=await _typeCouncilServies.GetCouncilById(council.TypeCouncilId);
-            if(type ==null)
+            var type = await _typeCouncilServies.GetCouncilById(council.TypeCouncilId);
+            if (type == null)
             {
                 throw new ApplicationException("Failed to Add Council please review data .");
             }
-            await _context.AddAsync(council);
-            await _context.SaveChangesAsync();
-            return "success";
-
+            DateTime now = DateTime.Now;
+            if (council.Date > now)
+            {
+                await _context.AddAsync(council);
+                await _context.SaveChangesAsync();
+                return "success";
+            }
+            throw new ApplicationException("Please check Date");
         }
 
         public async Task<IEnumerable<Councils>> GetallCouncils()

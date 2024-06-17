@@ -10,12 +10,14 @@ namespace CouncilsManagmentSystem.Services
         private readonly ApplicationDbContext _context;
         private readonly ICouncilsServies _councilsServies;
         private readonly IUserServies _userServies;
+        private readonly ITypeCouncilServies _typeCouncilServies;
 
-        public CouncilMembersServies(ApplicationDbContext context, ICouncilsServies councilsServies = null, IUserServies userServies = null)
+        public CouncilMembersServies(ApplicationDbContext context, ICouncilsServies councilsServies = null, IUserServies userServies = null, ITypeCouncilServies typeCouncilServies = null)
         {
             _context = context;
             _councilsServies = councilsServies;
             _userServies = userServies;
+            _typeCouncilServies = typeCouncilServies;
         }
 
 
@@ -43,6 +45,7 @@ namespace CouncilsManagmentSystem.Services
             }
             var councils = await _context.CouncilMembers.Where(x => x.MemberId == user.Id).Include(a => a.Council).Select(z => new {
                 id = z.Council.Id,
+                Date = z.Council.Date,
                 Title = z.Council.Title
             }).ToListAsync();
             return councils;
@@ -60,6 +63,7 @@ namespace CouncilsManagmentSystem.Services
             var councils = await _context.CouncilMembers.Where(x => x.MemberId == id).Include(a => a.Council).Select(z => new {
                 id = z.Council.Id
                 ,
+                Date = z.Council.Date,
                 Title = z.Council.Title
             }).ToListAsync();
             return councils;
@@ -78,6 +82,49 @@ namespace CouncilsManagmentSystem.Services
                 .Where(x => x.CouncilId == id).Include(x => x.ApplicationUser).Select(z => new { fullname = z.ApplicationUser.FullName, Email = z.ApplicationUser.Email })
                 .ToListAsync();
             return users;
+        }
+        //next councils
+        public async Task<IEnumerable<object>> GetAllNextCouncilsbyidmember(string idmember)
+        {
+            var user = await _userServies.getuserByid(idmember);
+            if (user == null)
+            {
+                return null;
+            }
+
+            DateTime now = DateTime.Now;
+
+            var councils = await _context.CouncilMembers
+                .Where(x => x.MemberId == idmember)
+                .Include(a => a.Council)
+                .Select(z => new
+                {
+                    id = z.Council.Id,
+                    Date = z.Council.Date,
+                    CurrentDateTime = now,
+                    Title = z.Council.Title
+                })
+                .Where(z => z.Date > z.CurrentDateTime)
+                .ToListAsync();
+
+            return councils.Select(z => new
+            {
+                z.id,
+                z.Title,
+                z.Date
+            });
+        }
+
+        public async Task<IEnumerable<ApplicationUser>> getAllUserInDep(int typecouncilId)
+        {
+            var type = await _typeCouncilServies.GetCouncilById(typecouncilId);
+            var users = await _userServies.getAllUserByIdDepartment(type.DepartmentId);
+            if (users != null)
+            {
+                return users;
+            }
+            return null;
+
         }
 
         public async Task<object> GetCouncilbyEmailmember(string email, int council)
