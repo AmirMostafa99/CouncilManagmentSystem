@@ -1,0 +1,101 @@
+﻿using CouncilsManagmentSystem.Models;
+using Microsoft.EntityFrameworkCore;
+
+namespace CouncilsManagmentSystem.Services
+{
+    public class CouncilsServies : ICouncilsServies
+    {
+        private readonly ApplicationDbContext _context;
+        
+        private readonly ITypeCouncilServies _typeCouncilServies;
+
+        public CouncilsServies(ApplicationDbContext context,  ITypeCouncilServies typeCouncilServies)
+        {
+            _context = context;
+          
+            _typeCouncilServies = typeCouncilServies;
+        }
+
+        public async Task<string> AddCouncil(Councils council)
+        {
+            var type=await _typeCouncilServies.GetCouncilById(council.TypeCouncilId);
+            if(type ==null)
+            {
+                throw new ApplicationException("Failed to Add Council please review data .");
+            }
+            await _context.AddAsync(council);
+            await _context.SaveChangesAsync();
+            return "success";
+
+        }
+
+        public async Task<IEnumerable<Councils>> GetallCouncils()
+        {
+            var councils = await _context.Councils.OrderBy(x => x.Title).ToListAsync();
+            return councils;
+        }
+
+        public async Task<IEnumerable<Councils>> GetAllCouncilsByIdType(int typeId)
+        {
+            var type = await _typeCouncilServies.GetCouncilById(typeId);
+            if (type == null)
+            {
+                throw new ApplicationException("Failed to Add Council please review data .");
+            }
+            var councils=await _context.Councils.Where(x=>x.TypeCouncilId==typeId).ToListAsync();
+            return councils;
+        }
+
+        public async Task<Councils> GetCouncilByDate(DateTime date)
+        {
+            var council = await _context.Councils.FirstOrDefaultAsync(x => x.Date.Date == date.Date);
+            if(council == null)
+            {
+                throw new ApplicationException("Dont have any council in this data !");
+            }
+            return council;
+        }
+
+        public async Task<Councils> GetCouncilById(int councilId)
+        {
+            var council = await _context.Councils.FirstOrDefaultAsync(x => x.Id==councilId);
+            if (council == null)
+            {
+                throw new ApplicationException("Dont have this ID !");
+            }
+            return council;
+        }
+
+        public async Task<IEnumerable<Councils>> GetCouncilSbyIDhalls(int Idhall)
+        {
+            var council = await _context.Councils.Where(x => x.HallId==Idhall).ToListAsync();
+            if (council == null)
+            {
+                throw new ApplicationException("Dont have any council in ID halls !");
+            }
+            return council;
+        }
+
+        public async Task<IEnumerable<Councils>> GetCouncilsByTitle(string name)
+        {
+            var council = await _context.Councils.Where(x => x.Title.Contains(name)).ToListAsync();
+            if (council == null)
+            {
+                throw new ApplicationException("Dont have any council has this name !");
+            }
+            return council;
+        }
+
+        public async Task<string> UpdateCouncil(Councils council)
+        {
+            var type = await _typeCouncilServies.GetCouncilById(council.TypeCouncilId);
+            if (type == null)
+            {
+                throw new ApplicationException("Failed to Add Council please review data .");
+            }
+               _context.Update(council);
+            await _context.SaveChangesAsync();
+            return "success of update";
+        }
+    }
+}
