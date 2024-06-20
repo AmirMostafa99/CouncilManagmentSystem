@@ -1,5 +1,6 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -20,7 +21,8 @@ namespace CouncilsManagmentSystem.Controllers
 
         }
 
-
+        [Authorize]
+        [Authorize(Policy = "RequireAddTopicPermission")]
         [HttpPost(template: "AddTpic")]
         public async Task<IActionResult> AddTopic([FromForm] TopicDto topicDto)
         {

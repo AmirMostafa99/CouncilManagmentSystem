@@ -76,6 +76,8 @@ namespace CouncilsManagmentSystem.Services
                     return permissions.AddCollage;
                 case "AddDepartment":
                     return permissions.AddDepartment;
+                case "AddHall":
+                    return permissions.AddHall;
 
                 default:
                     return false;
@@ -98,7 +100,13 @@ namespace CouncilsManagmentSystem.Services
                 per.CreateTypeCouncil,
                 per.EditCouncil,
                 per.AddCouncil,
-                per.Arrange
+                per.Arrange,
+                per.AddCollage,
+                per.AddDepartment,
+                per.AddHall,
+                per.Updatepermission,
+                per.DeactiveUser,
+                per.UpdateUser
                 
             };
             return permission;
@@ -118,7 +126,15 @@ namespace CouncilsManagmentSystem.Services
                 per.EditTypeCouncil,
                 per.CreateTypeCouncil,
                 per.EditCouncil,
-                per.AddCouncil
+                per.AddCouncil,
+                per.Arrange,
+                per.AddCollage,
+                per.AddDepartment,
+                per.AddHall,
+                per.Updatepermission,
+                per.DeactiveUser,
+                per.UpdateUser
+                
 
             };
             return permission;

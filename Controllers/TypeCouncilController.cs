@@ -1,6 +1,7 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -25,7 +26,8 @@ namespace CouncilsManagmentSystem.Controllers
             _typeCouncilServies = typeCouncilServies;
         }
 
-
+        [Authorize]
+        [Authorize(Policy = "RequireCreateTypeCouncilPermission")]
         [HttpPost(template: "AddTypeCouncil")]
         public async Task<IActionResult> addTypeCouncil([FromForm] AddTypeCouncilsDTO type)
         {
@@ -101,6 +103,10 @@ namespace CouncilsManagmentSystem.Controllers
             return BadRequest("There is an error in your data.");
         }
 
+
+
+        [Authorize]
+        [Authorize(Policy = "RequireEditTypeCouncilPermission")]
         [HttpPut(template: "UpdateType")]
         public async Task<IActionResult> updatetypecouncil(int id, [FromForm] AddTypeCouncilsDTO type)
         {

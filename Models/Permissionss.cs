@@ -40,6 +40,9 @@ namespace CouncilsManagmentSystem.Models
         [DefaultValue(false)]
         public bool UpdateUser { get; set; }
 
+        [DefaultValue(false)]
+        public bool AddHall { get; set; }
+
 
 
 

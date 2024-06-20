@@ -1,5 +1,6 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,7 +17,10 @@ namespace CouncilsManagmentSystem.Controllers
             _context = context;
         }
 
-        
+
+        [Authorize]
+
+        [Authorize(Policy = "RequireAddHallPermission")]
         [HttpPost(template: "CreateHall")]
 
         public IActionResult CreateHall([FromBody] HallDTOs Dto)
@@ -38,7 +42,9 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(hall);
         }
 
-     
+        [Authorize]
+
+        [Authorize(Policy = "RequireAddHallPermission")]
         [HttpDelete(template: "DeleteHall")]
 
         public async Task<IActionResult> DeleteHall(int id)
@@ -55,7 +61,9 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok("The Hall Is Deleted");
         }
 
-        
+        [Authorize]
+
+        [Authorize(Policy = "RequireAddHallPermission")]
         [HttpPut(template: "UpdateHall")]
         public async Task<IActionResult> UpdateHall(int id, [FromBody] HallDTOs Dto)
         {

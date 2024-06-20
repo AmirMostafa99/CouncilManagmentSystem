@@ -2,6 +2,7 @@
 using CouncilsManagmentSystem.Migrations;
 using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -21,7 +22,8 @@ namespace CouncilsManagmentSystem.Controllers
             _permissionsServies = permissionsServies;
         }
 
-        // [HttpPost("Updatewithpermissions")]
+        [Authorize]
+        [Authorize(Policy = "RequireUpdatepermission")]
         [HttpPut(template: "Updatepermission")]
         public async Task<IActionResult> addwithpermissions([FromBody] AddPermissionsDTO dto)
         {

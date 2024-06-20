@@ -1,6 +1,7 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -19,6 +20,8 @@ namespace CouncilsManagmentSystem.Controllers
             _departmentServies = departmentServies;
             _collageServies = collageServies;
         }
+        [Authorize]
+        [Authorize(Policy = "RequireAddDepartmentPermission")]
         //Add department
         [HttpPost(template: "AddDepartment")]
         public async Task<IActionResult> AddDepartment([FromForm] AddDepartmntDto dto)
@@ -42,6 +45,8 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         //update department
+        [Authorize]
+        [Authorize(Policy = "RequireAddDepartmentPermission")]
         [HttpPut(template: "Update Department")]
         public async Task<IActionResult> updatedepartment(int id, AddDepartmntDto dto)
         {

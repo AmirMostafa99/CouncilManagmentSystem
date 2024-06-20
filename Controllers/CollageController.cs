@@ -1,6 +1,7 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -31,7 +32,8 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(collage);
         }
         //add collages in db
-
+        [Authorize]
+        [Authorize(Policy = "RequireAddCollagePermission")]
         [HttpPost(template: "AddCollage")]
         public async Task<IActionResult> AddCollage([FromForm] AddCollageDTO dto)
         {
@@ -43,7 +45,8 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
-
+        [Authorize]
+        [Authorize(Policy = "RequireAddCollagePermission")]
         //update collages
         [HttpPut(template:"UpdateCollage{id}")]
         public async Task<IActionResult> updateCollage(int id, AddCollageDTO dto)

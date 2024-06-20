@@ -110,13 +110,9 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize(Policy = "RequireAddMembersByExcelPermission")]
 
         [HttpPost(template: "AddUsersBySheet")]
-        public async Task<IActionResult> UploadFiles(string iduser ,IFormFile file)
+        public async Task<IActionResult> UploadFiles(IFormFile file)
         {
-            var per=await _context.permissionss.FirstOrDefaultAsync(x=>x.userId==iduser);
-            if(per.AddMembersByExcil!=true)
-            {
-                return BadRequest("Idont have this permission????????????????????????");
-            }
+          
             if (file != null && file.Length > 0)
             {
                 using (var package = new ExcelPackage(file.OpenReadStream()))
@@ -227,7 +223,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-
+        [Authorize]
         //update user
         [HttpPut(template: "UpdateUser")]
         public async Task<IActionResult> updateUser(string id, [FromForm] updateuserDTO user)
@@ -298,7 +294,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-
+        
         //[Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
         [HttpPost("ActivateEmail")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
@@ -392,7 +388,7 @@ namespace CouncilsManagmentSystem.Controllers
             });
         }
 
-
+        [Authorize]
         //[AllowAnonymous]
         [HttpPost("ForgetPassword")]
         public async Task<IActionResult> ForgetPassword([FromBody] UserForgetPasswordRequestDto dto)
@@ -434,7 +430,7 @@ namespace CouncilsManagmentSystem.Controllers
             });
 
         }
-
+        [Authorize]
         [AllowAnonymous]
         [HttpPost("ResetPassword")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto dto)
@@ -470,6 +466,7 @@ namespace CouncilsManagmentSystem.Controllers
             });
         }
         //[AllowAnonymous]
+        [Authorize]
         [HttpPost("ChangePassword")]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto dto)
         {
@@ -512,7 +509,8 @@ namespace CouncilsManagmentSystem.Controllers
                 }
             });
         }
-
+        [Authorize]
+        [Authorize(Policy = "RequireDeactiveUserPermission")]
         // [Authorize(Roles = "SuperAdmin,SubAdmin")]
         [HttpPut("DeactivateUser")]
         public async Task<IActionResult> DeactivateUser([FromBody] DeactivateUserRequestDto dto)
@@ -543,7 +541,9 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         //TODO: SuberAdmin add role to users
-       // [Authorize(Roles = "SuperAdmin")]
+        // [Authorize(Roles = "SuperAdmin")]
+        [Authorize]
+        [Authorize(Policy = "RequireUpdatepermission")]
         [HttpPost("AssignRole")]
         public async Task<IActionResult> AssignRoleToUser(AssignRoleDto dto)
         {

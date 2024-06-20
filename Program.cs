@@ -69,12 +69,14 @@ builder.Services.AddAuthorization(options =>
       policy.Requirements.Add(new PermissionRequirement("UpdateUser")));
     options.AddPolicy("RequireDeactiveUserPermission", policy =>
       policy.Requirements.Add(new PermissionRequirement("DeactiveUser")));
-    options.AddPolicy("RequireUpdatepermissionPermission", policy =>
+    options.AddPolicy("RequireUpdatepermission", policy =>
       policy.Requirements.Add(new PermissionRequirement("Updatepermission")));
     options.AddPolicy("RequireAddCollagePermission", policy =>
       policy.Requirements.Add(new PermissionRequirement("AddCollage")));
     options.AddPolicy("RequireAddDepartmentPermission", policy =>
       policy.Requirements.Add(new PermissionRequirement("AddDepartment")));
+    options.AddPolicy("RequireAddHallPermission", policy =>
+     policy.Requirements.Add(new PermissionRequirement("AddHall")));
 });
 
 // Register scoped authorization handler

@@ -1,6 +1,7 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -17,7 +18,8 @@ namespace CouncilsManagmentSystem.Controllers
         {
             _councilServies = councilServies;
         }
-
+        [Authorize]
+        [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost(template: "CreateCouncil")]
         public async Task<IActionResult> createcouncil(AddCouncilsDTO DTO)
         {
@@ -93,6 +95,10 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
+
+
+        [Authorize]
+        [Authorize(Policy = "RequireEditCouncilPermission")]
         [HttpPut(template:"UpdateCouncil")]
         public async Task<IActionResult> updatecouncil (int id , AddCouncilsDTO DTO)
         {
