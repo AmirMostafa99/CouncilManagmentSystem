@@ -10,7 +10,7 @@ namespace CouncilsManagmentSystem.DTOs
     }
     public class AddPermissionsDTO
     {
-        public string UserId { get; set; }
+        public string Email { get; set; }
 
 
         [DefaultValue(false)]

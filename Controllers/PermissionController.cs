@@ -1,8 +1,10 @@
 ﻿using CouncilsManagmentSystem.DTOs;
+using CouncilsManagmentSystem.Migrations;
 using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System;
 
 namespace CouncilsManagmentSystem.Controllers
 {
@@ -11,34 +13,81 @@ namespace CouncilsManagmentSystem.Controllers
     public class PermissionController : ControllerBase
     {
         private readonly IPermissionsServies _permissionsServies;
+        private readonly IUserServies _userServies;
 
-        public PermissionController(IPermissionsServies permissionsServies)
+        public PermissionController(IPermissionsServies permissionsServies , IUserServies userservies)
         {
+            _userServies = userservies;
             _permissionsServies = permissionsServies;
         }
 
-        [HttpPost("addwithpermissions")]
+        // [HttpPost("Updatewithpermissions")]
+        [HttpPut(template: "Updatepermission")]
         public async Task<IActionResult> addwithpermissions([FromBody] AddPermissionsDTO dto)
         {
             if (ModelState.IsValid)
             {
-                var permission = new Permissionss {
-                    userId = dto.UserId,
-                    AddCouncil = dto.AddCouncil,
-                    EditCouncil = dto.EditCouncil,
-                    CreateTypeCouncil =dto.CreateTypeCouncil,
-                    EditTypeCouncil = dto.EditTypeCouncil,
-                    AddMembersByExcil = dto.AddMembersByExcil,
-                    AddMembers = dto.AddMembers,
-                    AddTopic = dto.AddTopic,
-                    Arrange = dto.Arrange,
-                    AddResult = dto.AddResult
-                };
+                var user = await _userServies.getuserByEmail(dto.Email);
+                if(user==null)
+                {
+                    return BadRequest("This email is not found!!");
+                }
+                var userPerm = await _permissionsServies.getpermissionByid(user.Id);
+              
 
-                await _permissionsServies.Addpermission(permission);
-                return Ok(permission);
+                if (userPerm == null)
+                {
+                    var permission = new Permissionss
+                    {
+                        userId = user.Id,
+                        AddCouncil = dto.AddCouncil,
+                        EditCouncil = dto.EditCouncil,
+                        CreateTypeCouncil = dto.CreateTypeCouncil,
+                        EditTypeCouncil = dto.EditTypeCouncil,
+                        AddMembersByExcil = dto.AddMembersByExcil,
+                        AddMembers = dto.AddMembers,
+                        AddTopic = dto.AddTopic,
+                        Arrange = dto.Arrange,
+                        AddResult = dto.AddResult
+                    };
+
+                  var newper=  await _permissionsServies.Addpermission(permission);
+                    return Ok(newper);
+                }
+                else
+                {
+                    userPerm.AddCouncil = dto.AddCouncil;
+                    userPerm.EditCouncil = dto.EditCouncil;
+                    userPerm.CreateTypeCouncil = dto.CreateTypeCouncil;
+                    userPerm.EditTypeCouncil = dto.EditTypeCouncil;
+                    userPerm.AddMembersByExcil = dto.AddMembersByExcil;
+                    userPerm.AddMembers = dto.AddMembers;
+                    userPerm.AddTopic = dto.AddTopic;
+                    userPerm.Arrange = dto.Arrange;
+                    userPerm.AddResult = dto.AddResult;
+                    var newper = await _permissionsServies.UpdatePermission(userPerm);
+                      return Ok(newper);
+
+                }
             }
             return BadRequest("you have wrong in your data. ");
         }
+
+        [HttpGet(template:"GetPermissionsUser")]
+        public async Task<IActionResult> getpermissionuser(string email)
+        {
+            var user = await _userServies.getuserByEmail(email);
+            if (user == null)
+            {
+                return BadRequest("This email is not found!!");
+            }
+            var per = await _permissionsServies.getObjectpermissionByid(user.Id);
+            if(per == null)
+            {
+                return BadRequest("you have wrong in your data. ");
+            }
+            return Ok(per);
+        }
+      
     }
 }

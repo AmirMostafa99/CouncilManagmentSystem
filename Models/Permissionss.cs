@@ -25,6 +25,24 @@ namespace CouncilsManagmentSystem.Models
         [DefaultValue(false)]
         public bool AddResult { get; set; }
 
+        [DefaultValue(false)]
+        public bool AddDepartment { get; set; }
+
+        [DefaultValue(false)]
+        public bool AddCollage { get; set; }
+
+        [DefaultValue(false)]
+        public bool Updatepermission { get; set; }
+
+        [DefaultValue(false)]
+        public bool DeactiveUser { get; set; }
+
+        [DefaultValue(false)]
+        public bool UpdateUser { get; set; }
+
+
+
+
         [ForeignKey("ApplicationUser")]
         public string userId { get; set; }
         public ApplicationUser ApplicationUser { get; set; }

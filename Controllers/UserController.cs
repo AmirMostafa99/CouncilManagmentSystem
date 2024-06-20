@@ -59,7 +59,7 @@ namespace CouncilsManagmentSystem.Controllers
             _permissionsServies=permissionsServies;
         }
 
-        // private permissions per = _context.permissionss.FirstOrDefaultAsync(x => x.userId == "4bc00fa3-24fd-4bfe-9025-bc48b820ce72");
+       
 
 
 
