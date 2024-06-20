@@ -15,8 +15,11 @@ using System.Text;
 using OfficeOpenXml;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System.Reflection.PortableExecutable;
+using CouncilsManagmentSystem.Migrations;
+
 namespace CouncilsManagmentSystem.Controllers
 {
+    
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -31,9 +34,15 @@ namespace CouncilsManagmentSystem.Controllers
         public readonly ICollageServies _collageServies;
         private readonly IWebHostEnvironment _environment;
         private readonly ICouncilMembersServies _councilMembersServies;
+        private readonly IPermissionsServies _permissionsServies;
+
+ 
+
+
+       
 
         // private readonly JwtConfig _jwtConfig;
-        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService , RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies, ICouncilMembersServies councilMembersServies)
+        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService , RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies, ICouncilMembersServies councilMembersServies  , IPermissionsServies permissionsServies )
         {
             _context = context;
             _usermanager = usermanager;
@@ -47,12 +56,24 @@ namespace CouncilsManagmentSystem.Controllers
             _collageServies = collageServies;
             _departmentServies = departmentServies;
             _councilMembersServies = councilMembersServies;
+            _permissionsServies=permissionsServies;
         }
 
-        //[Authorize(Roles = "SuperAdmin,SubAdmin")]
+        // private permissions per = _context.permissionss.FirstOrDefaultAsync(x => x.userId == "4bc00fa3-24fd-4bfe-9025-bc48b820ce72");
+
+
+
+
+
+
+
+        [Authorize]
+       // [Authorize(Roles = "SuperAdmin,SubAdmin")]
+        [Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
-        public async Task<IActionResult> Adduser(AddUserDTO user)
+        public async Task<IActionResult> Adduser( AddUserDTO user)
         {
+            
             if (ModelState.IsValid)
             {
                 var adduser = new ApplicationUser
@@ -64,12 +85,13 @@ namespace CouncilsManagmentSystem.Controllers
                     Birthday = user.Birthday,
                     academic_degree = user.academic_degree,
                     functional_characteristic = user.functional_characteristic,
-                    DepartmentId=user.DepartmentId,
+                    DepartmentId = user.DepartmentId,
                     administrative_degree = user.administrative_degree
-                   
+
                 };
 
                 var password = Guid.NewGuid().ToString("N").Substring(0, 8);
+                
                 adduser.PasswordHash = password;
                 adduser.IsVerified = false;
                 await _usermanager.CreateAsync(adduser);
@@ -80,9 +102,21 @@ namespace CouncilsManagmentSystem.Controllers
             return BadRequest("There is an error in your data.");
         }
 
+
+
+
+        [Authorize]
+
+        [Authorize(Policy = "RequireAddMembersByExcelPermission")]
+
         [HttpPost(template: "AddUsersBySheet")]
-        public async Task<IActionResult> UploadFiles(IFormFile file)
+        public async Task<IActionResult> UploadFiles(string iduser ,IFormFile file)
         {
+            var per=await _context.permissionss.FirstOrDefaultAsync(x=>x.userId==iduser);
+            if(per.AddMembersByExcil!=true)
+            {
+                return BadRequest("Idont have this permission????????????????????????");
+            }
             if (file != null && file.Length > 0)
             {
                 using (var package = new ExcelPackage(file.OpenReadStream()))
@@ -317,7 +351,7 @@ namespace CouncilsManagmentSystem.Controllers
             {
                 // check if the user exist
                 var existing_user = await _usermanager.FindByEmailAsync(dto.Email);
-
+                
                 if (existing_user == null)
                 {
                     return BadRequest("The User Not Exist");
@@ -333,14 +367,19 @@ namespace CouncilsManagmentSystem.Controllers
                 {
                     return BadRequest("Invalid Password");
                 }
-
+                var UserPermission = await _permissionsServies.getObjectpermissionByid(existing_user.Id);
                 var jwrToken = GeneratJwtToken(existing_user);
+               
                 return Ok(new AuthenticationResault()
                 {
+                    Permission = UserPermission,
                     Token = jwrToken,
                     Result = true
+                                 
+
 
                 });
+
             }
 
             return BadRequest(new AuthenticationResault()
@@ -584,11 +623,34 @@ namespace CouncilsManagmentSystem.Controllers
             return jwtToken;
         }
 
-        [HttpGet(template: "GetAllNextCouncilByidUser")]
-        public async Task<IActionResult> getallnextcouncilbyiduser(string idmember)
+
+
+
+        [Authorize]
+        [HttpGet(template: "GetAllNextCouncilforUser")]
+        public async Task<IActionResult> getallnextcouncilbyiduser()
         {
-            var councils = await _councilMembersServies.GetAllNextCouncilsbyidmember(idmember);
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            
+                var user = await _userServies.getuserByEmail(userEmail);
+
+                var councils = await _councilMembersServies.GetAllNextCouncilsbyidmember(user.Id);
             return Ok(councils);
+        }
+
+
+        [Authorize]
+        [HttpGet(template: "Profile")]
+        public async Task<IActionResult> Profile()
+        {
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+
+            var user = await _userServies.getuserByEmail(userEmail);
+
+            
+            return Ok(user);
         }
 
     }

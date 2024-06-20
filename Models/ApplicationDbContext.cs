@@ -20,6 +20,7 @@ namespace CouncilsManagmentSystem.Models
         public DbSet<Hall> Halls { get; set; }
         public DbSet<Topic> topics { get; set; }
         public DbSet<CouncilMembers> CouncilMembers { get; set; }
+        public DbSet<Permissionss> permissionss { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

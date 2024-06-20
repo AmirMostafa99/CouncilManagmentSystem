@@ -32,7 +32,7 @@ namespace CouncilsManagmentSystem.Models
         [InverseProperty("SecretaryCouncil")]
         public TypeCouncil Secretaryship { get; set; }
         public ICollection<CouncilMembers> CouncilMembers { get; set; }
-
+        public Permissionss Permissionss { get; set; }
 
     }
 }

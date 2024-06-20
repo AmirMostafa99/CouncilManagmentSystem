@@ -1,4 +1,4 @@
-using CouncilsManagmentSystem.Models;
+﻿using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
 using CouncilsManagmentSystem.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -15,8 +15,16 @@ using Microsoft.AspNetCore.Identity.UI;
 using CouncilsManagmentSystem.Seeds;
 using System.ComponentModel;
 using OfficeOpenXml;
-
-
+using Microsoft.AspNetCore.Authorization;
+using CouncilsManagmentSystem.Models;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,6 +43,39 @@ builder.Services.AddTransient<IUserServies, UserServies>();
 builder.Services.AddTransient<ITypeCouncilServies, TypeCouncilServies>();
 builder.Services.AddTransient<ICouncilsServies, CouncilsServies>();
 builder.Services.AddTransient<ICouncilMembersServies, CouncilMembersServies>();
+builder.Services.AddTransient<IPermissionsServies, PermissionsServies>();
+
+
+// Configure authorization policies
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("RequireAddMembersPermission", policy =>
+        policy.Requirements.Add(new PermissionRequirement("AddMembers")));
+    options.AddPolicy("RequireAddMembersByExcelPermission", policy =>
+       policy.Requirements.Add(new PermissionRequirement("AddMembersByExcil")));
+    options.AddPolicy("RequireAddResultPermission", policy =>
+      policy.Requirements.Add(new PermissionRequirement("AddResult")));
+    options.AddPolicy("RequireAddTopicPermission", policy =>
+      policy.Requirements.Add(new PermissionRequirement("AddTopic")));
+    options.AddPolicy("RequireEditTypeCouncilPermission", policy =>
+      policy.Requirements.Add(new PermissionRequirement("EditTypeCouncil")));
+    options.AddPolicy("RequireCreateTypeCouncilPermission", policy =>
+      policy.Requirements.Add(new PermissionRequirement("CreateTypeCouncil")));
+    options.AddPolicy("RequireEditCouncilPermission", policy =>
+      policy.Requirements.Add(new PermissionRequirement("EditCouncil")));
+    options.AddPolicy("RequireAddCouncilPermission", policy =>
+      policy.Requirements.Add(new PermissionRequirement("AddCouncil")));
+});
+
+// Register scoped authorization handler
+builder.Services.AddScoped<IAuthorizationHandler, ScopedPermissionsAuthorizationHandler>();
+
+
+
+
+
+
+
 
 //excel
 OfficeOpenXml.LicenseContext licenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
@@ -136,6 +177,7 @@ if (app.Environment. IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    app.UseDeveloperExceptionPage();
 }
 
 
