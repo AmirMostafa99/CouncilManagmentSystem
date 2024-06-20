@@ -26,7 +26,14 @@ namespace CouncilsManagmentSystem.Services
                 per.EditTypeCouncil,
                 per.CreateTypeCouncil,
                 per.EditCouncil,
-                per.AddCouncil
+                per.AddCouncil,
+                per.Arrange,
+                per.AddCollage,
+                per.AddDepartment,
+                per.AddHall,
+                per.Updatepermission,
+                per.DeactiveUser,
+                per.UpdateUser
 
             };
             return permission;
