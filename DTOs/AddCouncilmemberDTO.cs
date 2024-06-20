@@ -7,7 +7,7 @@ namespace CouncilsManagmentSystem.DTOs
     public class AddCouncilmemberDTO
     {
         [Required(ErrorMessage = "PDF file is required.")]
-        public IFormFile Pdf { get; set; }
+        public IFormFile? Pdf { get; set; }
 
         [Required(ErrorMessage = "Please specify whether the member is attending.")]
         public bool IsAttending { get; set; }

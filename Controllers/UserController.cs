@@ -91,7 +91,7 @@ namespace CouncilsManagmentSystem.Controllers
                 };
 
                 var password = Guid.NewGuid().ToString("N").Substring(0, 8);
-                
+                adduser.img = "defaultimage.png";
                 adduser.PasswordHash = password;
                 adduser.IsVerified = false;
                 await _usermanager.CreateAsync(adduser);
@@ -173,7 +173,7 @@ namespace CouncilsManagmentSystem.Controllers
                             // Generate a random password
                             var password = Guid.NewGuid().ToString("N").Substring(0, 8);
 
-
+                            user.img = "defaultimage.png";
                             user.PasswordHash = password;
                             // Save changes to the database
                             await _userServies.CreateUserAsync(user);
@@ -225,57 +225,78 @@ namespace CouncilsManagmentSystem.Controllers
 
         [Authorize]
         //update user
-        [HttpPut(template: "UpdateUser")]
-        public async Task<IActionResult> updateUser(string id, [FromForm] updateuserDTO user)
+        [HttpPost(template: "UpdateUser")]
+        public async Task<IActionResult> updateUser(string id)
         {
-            //token
-            //var userEmail = User.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email)?.Value;
-            if (ModelState.IsValid)
+
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if(userEmail==null)
             {
-                var search = await _userServies.getuserByid(id);
-                if (search == null)
-                {
-                    return BadRequest("This user not found !");
-                }
-                string path = Path.Combine(_environment.ContentRootPath, "images");
-
-
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
-
-                if (user.img != null)
-                {
-                    path = Path.Combine(path, user.img.FileName);
-
-                    using (var stream = new FileStream(path, FileMode.Create))
-                    {
-                        await user.img.CopyToAsync(stream);
-
-
-                        search.img = user.img.FileName;
-
-
-
-                    }
-                }
-                search.FullName = user.FullName;
-                search.Email = user.Email;
-                search.Birthday = user.Birthday;
-                search.PhoneNumber = user.phone;
-                search.UserName = user.Email;
-                search.administrative_degree = user.administrative_degree;
-                search.functional_characteristic = user.functional_characteristic;
-                search.academic_degree = user.academic_degree;
-                _userServies.Updateusert(search);
-                return Ok(search);
-
+                return Unauthorized("User is not authenticated.");
             }
+            var checkuser = await _userServies.getuserByEmail(userEmail);
+            if (checkuser == null)
+            {
+                return BadRequest("This user not found !");
+            }
+            var per = await _permissionsServies.CheckPermissionAsync(checkuser.Id,"UpdateUser");
+            if(!per||checkuser.Id!=id)
+            {
+                return Unauthorized("User is not authenticated.");
+            }
+             
+
+            //if (ModelState.IsValid)
+            //{
+            //    var search = await _userServies.getuserByid(id);
+            //    if (search == null)
+            //    {
+            //        return BadRequest("This user not found !");
+            //    }
+
+            //    string path = Path.Combine(_environment.ContentRootPath, "images");
+
+
+            //    if (!Directory.Exists(path))
+            //    {
+            //        Directory.CreateDirectory(path);
+            //    }
+
+            //    if (user.img != null)
+            //    {
+            //        path = Path.Combine(path, user.img.FileName);
+
+            //        using (var stream = new FileStream(path, FileMode.Create))
+            //        {
+            //            await user.img.CopyToAsync(stream);
+
+
+            //            search.img = user.img.FileName;
+
+
+
+            //        }
+            //    }
+            //    search.FullName = user.FullName;
+            //    search.Email = user.Email;
+            //    search.Birthday = user.Birthday;
+            //    search.PhoneNumber = user.phone;
+            //    search.UserName = user.Email;
+            //    search.administrative_degree = user.administrative_degree;
+            //    search.functional_characteristic = user.functional_characteristic;
+            //    search.academic_degree = user.academic_degree;
+            //    _userServies.Updateusert(search);
+            //    return Ok(search);
+
+            //}
             return BadRequest("you have wrong in your data. ");
-
-
         }
+
+
+
+
+
+
 
         [HttpGet(template: "GetAllUserByIdDepartment")]
         public async Task<IActionResult> getAlluserByIdDepartment(int id)
