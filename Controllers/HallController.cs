@@ -100,6 +100,13 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(halls);
         }
 
+        [HttpGet("GetAllHalls")]
+        public async Task<IActionResult> GetAllHalls()
+        {
+            var halls = await _context.Halls.ToListAsync();
+            return Ok(halls);
+        }
+
     }
 
 }

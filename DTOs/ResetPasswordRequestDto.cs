@@ -2,15 +2,10 @@
 
 namespace CouncilsManagmentSystem.DTOs
 {
-    public class ResetPasswordRequestDto
+    public class ConfirmOTPDto
     {
-        [DataType(DataType.Password)]
         [Required]
-        public string NewPassword { get; set; }
-
-        [Required]
-        public string Email { get; set; }
-
+        public string Token { get; set; }
 
         [Required]
         public int OTP { get; set; }

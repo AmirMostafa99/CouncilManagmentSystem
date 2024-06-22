@@ -89,6 +89,75 @@ namespace CouncilsManagmentSystem.Controllers
 
             return Ok(topics);
         }
+        [HttpGet("GetAllTopics")]
+        public async Task<IActionResult> GetAllTopics()
+        {
+            var topics = await _context.topics.ToListAsync();
+            return Ok(topics);
+        }
+
+        //[HttpPost("AddResult")]
+        //public async Task<IActionResult> AddResult([FromBody] AddResultDto addResultDto)
+        //{
+        //    var topic = await _context.topics.FirstOrDefaultAsync(t => t.Title == addResultDto.Title);
+        //    if (topic == null)
+        //    {
+        //        return NotFound($"No topic found with the title {addResultDto.Title}.");
+        //    }
+
+        //    topic.Result = addResultDto.Result;
+
+        //    _context.topics.Update(topic);
+        //    await _context.SaveChangesAsync();
+
+        //    return Ok("Result added successfully.");
+        //}
+
+        [HttpPost("AddResultToTopic")]
+        public async Task<IActionResult> AddResultToTopic([FromBody] AddResultToTopicDto addResultToTopicDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var council = await _context.Councils.FindAsync(addResultToTopicDto.CouncilId);
+            if (council == null)
+            {
+                return NotFound($"Council with ID {addResultToTopicDto.CouncilId} not found.");
+            }
+
+            var topic = await _context.topics.FirstOrDefaultAsync(t => t.Id == addResultToTopicDto.TopicId && t.CouncilId == addResultToTopicDto.CouncilId);
+            if (topic == null)
+            {
+                return NotFound($"Topic with ID {addResultToTopicDto.TopicId} not found in Council with ID {addResultToTopicDto.CouncilId}.");
+            }
+
+            topic.Result = addResultToTopicDto.Result;
+
+            _context.topics.Update(topic);
+            await _context.SaveChangesAsync();
+
+            return Ok("Result added to topic successfully.");
+        }
+    
+
+    [HttpGet("GetTopicsOrderedByTitle")]
+        public async Task<IActionResult> GetTopicsOrderedByTitle()
+        {
+            var topics = await _context.topics.OrderBy(t => t.Title).ToListAsync();
+            return Ok(topics);
+        }
+
+        [HttpGet("GetTopicsOrderedByDate")]
+        public async Task<IActionResult> GetTopicsOrderedByDate()
+        {
+            var topics = await _context.topics
+                .OrderBy(t => t.DateTimeCreated)
+                .ToListAsync();
+
+            return Ok(topics);
+        }
 
     }
 }
