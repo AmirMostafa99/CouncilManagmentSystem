@@ -225,27 +225,27 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        //[Authorize]
+        [Authorize]
         //update user
         [HttpPut(template: "UpdateUser")]
         public async Task<IActionResult> updateUser(string id ,[FromForm] updateuserDTO user )
         {
 
-            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            //if(userEmail==null)
-            //{
-            //    return Unauthorized("User is not authenticated.");
-            //}
-            //var checkuser = await _userServies.getuserByEmail(userEmail);
-            //if (checkuser == null)
-            //{
-            //    return BadRequest("This user not found !");
-            //}
-            //var per = await _permissionsServies.CheckPermissionAsync(checkuser.Id,"UpdateUser");
-            //if(!per||checkuser.Id!=id)
-            //{
-            //    return Unauthorized("User is not authenticated.");
-            //}
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userEmail == null)
+            {
+                return Unauthorized("User is not authenticated.");
+            }
+            var checkuser = await _userServies.getuserByEmail(userEmail);
+            if (checkuser == null)
+            {
+                return BadRequest("This user not found !");
+            }
+            var per = await _permissionsServies.CheckPermissionAsync(checkuser.Id, "UpdateUser");
+            if (!per || checkuser.Id != id)
+            {
+                return Unauthorized("User is not authenticated.");
+            }
 
 
             if (ModelState.IsValid)
