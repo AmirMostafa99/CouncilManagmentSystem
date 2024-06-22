@@ -192,7 +192,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("No file or file empty.");
         }
-
+        [Authorize]
         [HttpGet(template: "GetAllUsers")]
         public async Task<IActionResult> getAlluser()
         {
@@ -200,6 +200,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
         //////Get user By name
+         [Authorize]
         [HttpGet(template: "GetUserByname")]
         public async Task<IActionResult> getuserByname(string fullname)
         {
@@ -207,7 +208,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(user);
         }
         /// ////////////get user by email
-
+        [Authorize]
         [HttpGet(template: "GetUserByEmail")]
         public async Task<IActionResult> getuserByEmail(string email)
         {
@@ -216,6 +217,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         //////all user by Name
+        [Authorize]
         [HttpGet(template: "GetAllUserByname")]
         public async Task<IActionResult> getAlluserByname(string fullname)
         {
@@ -223,27 +225,27 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        [Authorize]
+        //[Authorize]
         //update user
-        [HttpPost(template: "UpdateUser")]
-        public async Task<IActionResult> updateUser(string id ,updateuserDTO user )
+        [HttpPut(template: "UpdateUser")]
+        public async Task<IActionResult> updateUser(string id ,[FromForm] updateuserDTO user )
         {
 
-            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            if(userEmail==null)
-            {
-                return Unauthorized("User is not authenticated.");
-            }
-            var checkuser = await _userServies.getuserByEmail(userEmail);
-            if (checkuser == null)
-            {
-                return BadRequest("This user not found !");
-            }
-            var per = await _permissionsServies.CheckPermissionAsync(checkuser.Id,"UpdateUser");
-            if(!per||checkuser.Id!=id)
-            {
-                return Unauthorized("User is not authenticated.");
-            }
+            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //if(userEmail==null)
+            //{
+            //    return Unauthorized("User is not authenticated.");
+            //}
+            //var checkuser = await _userServies.getuserByEmail(userEmail);
+            //if (checkuser == null)
+            //{
+            //    return BadRequest("This user not found !");
+            //}
+            //var per = await _permissionsServies.CheckPermissionAsync(checkuser.Id,"UpdateUser");
+            //if(!per||checkuser.Id!=id)
+            //{
+            //    return Unauthorized("User is not authenticated.");
+            //}
 
 
             if (ModelState.IsValid)
