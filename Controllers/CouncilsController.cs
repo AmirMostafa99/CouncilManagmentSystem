@@ -37,21 +37,21 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
-
+        [Authorize]
         [HttpGet(template: "GetAllCouncils")]
         public async Task<IActionResult> getallcouncils()
         {
             var councils = await _councilServies.GetallCouncils();
             return Ok(councils);
         }
-
+        [Authorize]
         [HttpGet(template: "GetCouncilById")]
         public async Task<IActionResult> getcouncilbyid(int id)
         {
             var council=await _councilServies.GetCouncilById(id);
             return Ok(council);
         }
-
+        [Authorize]
         [HttpGet(template:"GetAllCouncilsByIdType")]
         public async Task<IActionResult> getallcouncilsbyidtype(int typeid)
         {
@@ -62,7 +62,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
-
+        [Authorize]
         [HttpGet(template:"GetAllCouncilsByIdHall")]
         public async Task<IActionResult> getalcouncilsbyidhall(int hallid)
         {
@@ -73,7 +73,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
-
+        [Authorize]
         [HttpGet(template:"GetAllCouncilByname")]
         public async Task<IActionResult> getallcouncilsbyname (string name)
         {
@@ -84,7 +84,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
-
+        [Authorize]
         [HttpGet(template:"GetCouncilBydate")]
         public async Task<IActionResult> getCouncilbydate(DateTime date)
         {
