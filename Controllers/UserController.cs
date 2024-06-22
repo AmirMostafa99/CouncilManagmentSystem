@@ -90,9 +90,9 @@ namespace CouncilsManagmentSystem.Controllers
 
                 };
 
-                var password = Guid.NewGuid().ToString("N").Substring(0, 8);
+                //var password = Guid.NewGuid().ToString("N").Substring(0, 8);
                 adduser.img = "defaultimage.png";
-                adduser.PasswordHash = password;
+                //adduser.PasswordHash = password;
                 adduser.IsVerified = false;
                 await _usermanager.CreateAsync(adduser);
                 await _context.SaveChangesAsync();
@@ -171,10 +171,10 @@ namespace CouncilsManagmentSystem.Controllers
 
 
                             // Generate a random password
-                            var password = Guid.NewGuid().ToString("N").Substring(0, 8);
+                           // var password = Guid.NewGuid().ToString("N").Substring(0, 8);
 
                             user.img = "defaultimage.png";
-                            user.PasswordHash = password;
+                            //user.PasswordHash = password;
                             // Save changes to the database
                             await _userServies.CreateUserAsync(user);
 
@@ -226,7 +226,7 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize]
         //update user
         [HttpPost(template: "UpdateUser")]
-        public async Task<IActionResult> updateUser(string id)
+        public async Task<IActionResult> updateUser(string id ,updateuserDTO user )
         {
 
             var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -244,51 +244,51 @@ namespace CouncilsManagmentSystem.Controllers
             {
                 return Unauthorized("User is not authenticated.");
             }
-             
-
-            //if (ModelState.IsValid)
-            //{
-            //    var search = await _userServies.getuserByid(id);
-            //    if (search == null)
-            //    {
-            //        return BadRequest("This user not found !");
-            //    }
-
-            //    string path = Path.Combine(_environment.ContentRootPath, "images");
 
 
-            //    if (!Directory.Exists(path))
-            //    {
-            //        Directory.CreateDirectory(path);
-            //    }
+            if (ModelState.IsValid)
+            {
+                var search = await _userServies.getuserByid(id);
+                if (search == null)
+                {
+                    return BadRequest("This user not found !");
+                }
 
-            //    if (user.img != null)
-            //    {
-            //        path = Path.Combine(path, user.img.FileName);
-
-            //        using (var stream = new FileStream(path, FileMode.Create))
-            //        {
-            //            await user.img.CopyToAsync(stream);
+                string path = Path.Combine(_environment.ContentRootPath, "images");
 
 
-            //            search.img = user.img.FileName;
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path);
+                }
+
+                if (user.img != null)
+                {
+                    path = Path.Combine(path, user.img.FileName);
+
+                    using (var stream = new FileStream(path, FileMode.Create))
+                    {
+                        await user.img.CopyToAsync(stream);
+
+
+                        search.img = user.img.FileName;
 
 
 
-            //        }
-            //    }
-            //    search.FullName = user.FullName;
-            //    search.Email = user.Email;
-            //    search.Birthday = user.Birthday;
-            //    search.PhoneNumber = user.phone;
-            //    search.UserName = user.Email;
-            //    search.administrative_degree = user.administrative_degree;
-            //    search.functional_characteristic = user.functional_characteristic;
-            //    search.academic_degree = user.academic_degree;
-            //    _userServies.Updateusert(search);
-            //    return Ok(search);
+                    }
+                }
+                search.FullName = user.FullName;
+                search.Email = user.Email;
+                search.Birthday = user.Birthday;
+                search.PhoneNumber = user.phone;
+                search.UserName = user.Email;
+                search.administrative_degree = user.administrative_degree;
+                search.functional_characteristic = user.functional_characteristic;
+                search.academic_degree = user.academic_degree;
+                _userServies.Updateusert(search);
+                return Ok(search);
 
-            //}
+            }
             return BadRequest("you have wrong in your data. ");
         }
 

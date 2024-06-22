@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System;
+using System.Security.Claims;
 
 namespace CouncilsManagmentSystem.Controllers
 {
@@ -90,6 +91,24 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return Ok(per);
         }
-      
+
+        [Authorize]
+        [HttpGet(template: "GetPermissionsUserByToken")]
+        public async Task<IActionResult> GetPermissionsUserByToken()
+        {
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _userServies.getuserByEmail(userEmail);
+            if (user == null)
+            {
+                return BadRequest("This email is not found!!");
+            }
+            var per = await _permissionsServies.getObjectpermissionByid(user.Id);
+            if (per == null)
+            {
+                return BadRequest("you have wrong in your data. ");
+            }
+            return Ok(per);
+        }
+
     }
 }

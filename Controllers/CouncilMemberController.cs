@@ -1,6 +1,7 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
 using CouncilsManagmentSystem.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -34,7 +35,8 @@ namespace CouncilsManagmentSystem.Controllers
             _environment = environment;
         }
 
-
+        [Authorize]
+        [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost("AddCouncilMember")]
         public async Task<IActionResult> AddCouncilMember([FromForm] AddCouncilmemberDTO dto)
         {
@@ -79,7 +81,8 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-
+        [Authorize]
+        [Authorize(Policy = "RequireAddCouncilPermission || RequireUpdateUserPermission")]
         [HttpGet(template: "GetAllMembersByIdCouncil")]
         public async Task<IActionResult> GetAllMembersByIdCouncil(int idcouncil)
         {

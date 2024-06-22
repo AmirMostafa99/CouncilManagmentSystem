@@ -21,8 +21,8 @@ namespace CouncilsManagmentSystem.Controllers
 
         }
 
-        //[Authorize]
-        //[Authorize(Policy = "RequireAddTopicPermission")]
+        [Authorize]
+        [Authorize(Policy = "RequireAddTopicPermission")]
         [HttpPost(template: "AddTopic")]
         public async Task<IActionResult> AddTopic([FromForm] TopicDto topicDto)
         {
@@ -72,7 +72,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok("Topic Added Successfully");
         }
 
-       // [Authorize]
+        [Authorize]
         [HttpGet("SearchTopicsByTitle")]
         public async Task<IActionResult> SearchTopicsByTitle(string title)
         {
@@ -92,14 +92,15 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(topics);
         }
 
-        //[Authorize]
+        [Authorize]
         [HttpGet("GetAllTopics")]
         public async Task<IActionResult> GetAllTopics()
         {
             var topics = await _context.topics.ToListAsync();
             return Ok(topics);
         }
-        //[Authorize]
+        [Authorize]
+        [Authorize(Policy = "RequireEditCouncilPermission")]
         [HttpPost("AddResultToTopic")]
         public async Task<IActionResult> AddResultToTopic([FromBody] AddResultToTopicDto addResultToTopicDto)
         {
@@ -128,14 +129,14 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok("Result added to topic successfully.");
         }
 
-
+        [Authorize]
         [HttpGet("GetTopicsOrderedByTitle")]
         public async Task<IActionResult> GetTopicsOrderedByTitle()
         {
             var topics = await _context.topics.OrderBy(t => t.Title).ToListAsync();
             return Ok(topics);
         }
-
+        [Authorize]
         [HttpGet("GetTopicsOrderedByDate")]
         public async Task<IActionResult> GetTopicsOrderedByDate()
         {
