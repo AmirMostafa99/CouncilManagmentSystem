@@ -24,7 +24,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
-using System.Text;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+
+
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,8 +38,31 @@ var connectionString = builder.Configuration.GetConnectionString("DefaultConnect
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-//add servies
-builder.Services.AddCors();
+// Add services
+
+builder.Services.AddCors(options =>
+
+{
+
+    options.AddPolicy("AllowReactDev",
+
+        builder =>
+
+        {
+
+            builder.WithOrigins("http://localhost:3000")
+
+                           .AllowAnyHeader()
+
+                           .AllowAnyMethod()
+
+                           .AllowCredentials();
+
+        });
+
+});
+
+
 builder.Services.AddTransient<ICollageServies, CollageServies>();
 builder.Services.AddTransient<IDepartmentServies, DepartmentServies>();
 builder.Services.AddTransient<IUserServies, UserServies>();
@@ -185,12 +211,22 @@ builder.Services.AddSwaggerGen(swagger =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
-if (app.Environment. IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-    app.UseDeveloperExceptionPage();
-}
+
+
+app.UseSwagger();
+app.UseSwaggerUI();
+app.UseDeveloperExceptionPage();
+
+
+app.UseHttpsRedirection();
+
+app.UseRouting();
+
+
+
+// Enable CORS
+
+app.UseCors("AllowReactDev");
 
 
 app.UseAuthentication();

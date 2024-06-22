@@ -17,6 +17,7 @@ namespace CouncilsManagmentSystem.Controllers
         {
             _collageServies = collageServies;
         }
+        [Authorize]
         //get all collages
         [HttpGet(template: "GetAllCollages")]
         public async Task<IActionResult> getAllcollages()
@@ -24,6 +25,7 @@ namespace CouncilsManagmentSystem.Controllers
             var collages = await _collageServies.getAllcollages();
             return Ok(collages);
         }
+        [Authorize]
         //get collage by id
         [HttpGet(template: "GetCollageBy{id}")]
         public async Task<IActionResult> getByid(int id)

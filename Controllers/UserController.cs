@@ -382,7 +382,7 @@ namespace CouncilsManagmentSystem.Controllers
                 var isCorrect = await _usermanager.CheckPasswordAsync(existing_user, dto.Password);
                 if (!isCorrect)
                 {
-                    return BadRequest("Invalid Password");
+                    return BadRequest("Invalid Credentials ");
                 }
                 var UserPermission = await _permissionsServies.getObjectpermissionByid(existing_user.Id);
                 var jwrToken = GeneratJwtToken(existing_user);
@@ -426,7 +426,7 @@ namespace CouncilsManagmentSystem.Controllers
                 }
                 // Generate a random 5-digit OTP
                 Random rand = new Random();
-                int otp = rand.Next(10000, 99999);
+                int otp = rand.Next(100000, 999999);
                 // Send the generated OTP to the user via email
                 var subject = "Council Management System Password Reset Not-replay";
                 var body = $"Dear User,\n\nYou have requested to reset your password for the Council Management System. Please use this OTP to reset your password. Your (OTP) is: {otp}.";
@@ -438,7 +438,18 @@ namespace CouncilsManagmentSystem.Controllers
                 existing_user.OTP = otp;
                 await _usermanager.UpdateAsync(existing_user);
 
-                return Ok("OTP successfully generated and sent via email.");
+                var UserPermission = await _permissionsServies.getObjectpermissionByid(existing_user.Id);
+                var jwrToken = GeneratJwtToken(existing_user);
+
+                return Ok(new AuthenticationResault()
+                {
+                    Permission = UserPermission,
+                    Token = jwrToken,
+                    Result = true
+
+
+
+                });
 
             }
             return BadRequest(new AuthenticationResault()
@@ -453,82 +464,154 @@ namespace CouncilsManagmentSystem.Controllers
         }
         [Authorize]
         [AllowAnonymous]
-        [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto dto)
+        [HttpPost("ConfirmOTP")]
+        public async Task<IActionResult> ConfirmOTP([FromBody] ConfirmOTPDto dto)
         {
-            var existing_user = await _usermanager.FindByEmailAsync(dto.Email);
-            if (existing_user == null)
+            if (!ModelState.IsValid)
             {
-                return BadRequest("The User Not Exist");
+                return BadRequest("Invalid payload.");
             }
 
-            // Check if the OTP provided by the user matches the one in the database
-            var otpFromDb = existing_user.OTP; // Assuming OTP is stored in the User entity
-            if (otpFromDb == null || otpFromDb != dto.OTP)
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken validatedToken;
+            var validationParameters = new TokenValidationParameters
             {
-                return BadRequest("Invalid OTP");
-            }
-            var jwrToken = GeneratJwtToken(existing_user);
-            // Reset the password for the user
-            await _usermanager.ResetPasswordAsync(existing_user, jwrToken, dto.NewPassword);
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
+                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
+            };
 
-            // Password reset successful, you can delete the OTP from the user entity
-            existing_user.OTP = null;
-            await _usermanager.UpdateAsync(existing_user);
-
-            return Ok(new AuthenticationResault()
+            try
             {
-                Token = jwrToken,
-                Result = true,
-                Errors = new List<string>()
+
+                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
+                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
+
+
+                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+                if (existingUser == null)
                 {
-                    "ResetPassword successfully done"
-                },
-            });
+                    return BadRequest("The user does not exist.");
+                }
+
+
+                if (existingUser.OTP != dto.OTP)
+                {
+                    return BadRequest("Invalid OTP.");
+                }
+
+
+                existingUser.OTP = null;
+                var newToken = GeneratJwtToken(existingUser);
+                await _usermanager.UpdateAsync(existingUser);
+
+                return Ok(new AuthenticationResault()
+                {
+                    Token = newToken,
+                    Result = true,
+                    Errors = new List<string>()
+            {
+                "OTP successfully Confirmed."
+            },
+                });
+            }
+            catch (SecurityTokenException)
+            {
+                return BadRequest("Invalid token.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
         //[AllowAnonymous]
         [Authorize]
-        [HttpPost("ChangePassword")]
-        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequestDto dto)
+        [HttpPost("AddNewPassword")]
+        public async Task<IActionResult> AddNewPassword([FromBody] AddNewPasswordWithTokenDto dto)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var user = await _usermanager.FindByEmailAsync(dto.Email);
-            if (user == null)
-                return NotFound("User not found.");
-
-            var result = await _usermanager.ChangePasswordAsync(user, dto.OldPassword, dto.NewPassword);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new AuthenticationResault()
             {
-                Errors = new List<string>()
-                    {
-                        "Password changed successfully."
-                    },
-                Result = true,
+                return BadRequest("Invalid payload.");
+            }
 
-            });
+            if (dto.NewPassword != dto.ConfirmNewPassword)
+            {
+                return BadRequest("The new password and confirmation password do not match.");
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken validatedToken;
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
+                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
+            };
+
+            try
+            {
+
+                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
+                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
+
+
+                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+                if (existingUser == null)
+                {
+                    return BadRequest("The user does not exist.");
+                }
+
+                var resetToken = await _usermanager.GeneratePasswordResetTokenAsync(existingUser);
+
+                var result = await _usermanager.ResetPasswordAsync(existingUser, resetToken, dto.NewPassword);
+
+                if (!result.Succeeded)
+                {
+                    return BadRequest("Failed to reset the password.");
+                }
+
+                var newToken = GeneratJwtToken(existingUser);
+
+                return Ok(new AuthenticationResault()
+                {
+                    Token = newToken,
+                    Result = true,
+                    Errors = new List<string>()
+                    {
+                        "The new password added successfully."
+                    },
+                });
+            }
+            catch (SecurityTokenException)
+            {
+                return BadRequest("Invalid token.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
 
-
         //[AllowAnonymous]
-        //[AllowAnonymous]
+        [Authorize]
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync();
-
+            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
             return Ok(new AuthenticationResault()
             {
                 Result = true,
                 Errors = new List<string>()
-                {
-                    "Logout successful."
-                }
-            });
+                  {
+                      "Logout successful."
+                  }
+                            });
         }
         [Authorize]
         [Authorize(Policy = "RequireDeactiveUserPermission")]
@@ -553,14 +636,13 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(new AuthenticationResault()
             {
                 Errors = new List<string>()
-                {
-                    "The User Deactivated"
-                },
+         {
+             "The User Deactivated"
+         },
                 Result = true,
-                           
+
             });
         }
-
         //TODO: SuberAdmin add role to users
         // [Authorize(Roles = "SuperAdmin")]
         [Authorize]
