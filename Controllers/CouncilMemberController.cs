@@ -39,7 +39,7 @@ namespace CouncilsManagmentSystem.Controllers
         //  [Authorize]
         // [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost("AddCouncilMember")]
-        public async Task<IActionResult> AddCouncilMember([FromForm] AddCouncilmemberDTO dto)
+        public async Task<IActionResult> AddCouncilMember([FromBody] AddCouncilmemberDTO dto)
         {
             if (!ModelState.IsValid)
             {
@@ -74,44 +74,47 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return Ok();
         }
+        [Authorize]
+        [HttpPut(template: "Confirm attendance")]
+        public async Task<IActionResult> ConfirmAttendance([FromForm] AddConfirmAttendanceDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var user = await _userService.getuserByEmail(userEmail);
+            if (user == null)
+            {
+                return NotFound($"you have error in your data");
+            }
+            var councilMember = await _councilMemberService.GetcouncilmemberlById(dto.CouncilId, user.Id);
+            if (councilMember == null)
+            {
+                return NotFound($"you have error in your data");
+            }
+            string uploadsPath = Path.Combine(_environment.ContentRootPath, "uploadsPDF");
+            if (!Directory.Exists(uploadsPath))
+            {
+                Directory.CreateDirectory(uploadsPath);
+            }
+            string fileName = Path.GetFileName(dto.Pdf.FileName);
+            string filePath = Path.Combine(uploadsPath, fileName);
+            var file = "";
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await dto.Pdf.CopyToAsync(stream);
+                file = fileName;
+            }
+            councilMember.CouncilId= dto.CouncilId;
+            councilMember.Pdf = file;
+            councilMember.IsAttending = dto.IsAttending;
+            councilMember.ReasonNonAttendance= dto.ReasonNonAttendance;
+            
+           var cou= _councilMemberService.updatecouncilmember(councilMember);
 
-        //[HttpPut(template: "Confirm attendance")]
-        //public async Task<IActionResult> ConfirmAttendance([FromForm] AddConfirmAttendanceDto dto)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-        //    var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        //    var user = await _userService.getuserByEmail(userEmail);
-        //    if (user == null)
-        //    {
-        //        return NotFound($"you have error in your data");
-        //    }
-        //    var councilMember = await _councilMemberService.GetcouncilmemberlById(dto.CouncilId, user.Id);
-        //    if (councilMember == null)
-        //    {
-        //        return NotFound($"you have error in your data");
-        //    }
-        //    string uploadsPath = Path.Combine(_environment.ContentRootPath, "uploadsPDF");
-        //    if (!Directory.Exists(uploadsPath))
-        //    {
-        //        Directory.CreateDirectory(uploadsPath);
-        //    }
-        //    string fileName = Path.GetFileName(dto.Pdf.FileName);
-        //    string filePath = Path.Combine(uploadsPath, fileName);
-        //    var file = "";
-        //    using (var stream = new FileStream(filePath, FileMode.Create))
-        //    {
-        //        await dto.Pdf.CopyToAsync(stream);
-        //        file = fileName;
-        //    }
-
-        //    councilMember.
-        //    await _councilMemberService.updatecouncilmember(councilMember);
-
-        //    return Ok();
-        //}
+            return Ok(cou);
+        }
 
 
 

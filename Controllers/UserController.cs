@@ -187,6 +187,7 @@ namespace CouncilsManagmentSystem.Controllers
             return BadRequest("No file or file empty.");
         }
         [Authorize]
+        [Authorize(Policy = "RequireAddMembersPermission")]
         [HttpGet(template: "GetAllUsers")]
         public async Task<IActionResult> getAlluser()
         {
@@ -195,6 +196,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
         //////Get user By name
          [Authorize]
+       
         [HttpGet(template: "GetUserByname")]
         public async Task<IActionResult> getuserByname(string fullname)
         {
@@ -212,6 +214,7 @@ namespace CouncilsManagmentSystem.Controllers
 
         //////all user by Name
         [Authorize]
+
         [HttpGet(template: "GetAllUserByname")]
         public async Task<IActionResult> getAlluserByname(string fullname)
         {
@@ -292,7 +295,7 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-
+        [Authorize]
 
         [HttpGet(template: "GetAllUserByIdDepartment")]
         public async Task<IActionResult> getAlluserByIdDepartment(int id)
@@ -302,7 +305,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-
+        [Authorize]
         [HttpGet(template: "GetAllUserByIdCollage")]
         public async Task<IActionResult> getAlluserByIdCollage(int id)
         {
@@ -311,7 +314,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        
+        [Authorize]
         [Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
         [HttpPost("ActivateEmail")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
@@ -355,7 +358,7 @@ namespace CouncilsManagmentSystem.Controllers
                 Result = false
             });
         }
-
+        
         [AllowAnonymous]
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequestDto dto)

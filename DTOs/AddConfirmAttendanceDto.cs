@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using CouncilsManagmentSystem.Attributes;
 using Microsoft.AspNetCore.Http;
 
 namespace CouncilsManagmentSystem.DTOs
@@ -7,6 +8,7 @@ namespace CouncilsManagmentSystem.DTOs
     public class AddConfirmAttendanceDto
     {
         [Required(ErrorMessage = "PDF file is required.")]
+        [AllowedExtensions(".pdf")]
         public IFormFile? Pdf { get; set; }
 
         [Required(ErrorMessage = "Please specify whether the member is attending.")]

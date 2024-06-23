@@ -86,7 +86,7 @@ namespace CouncilsManagmentSystem.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
             return (user);
         }
-        /////////////// 
+ 
 
 
         public ApplicationUser Updateusert(ApplicationUser user)

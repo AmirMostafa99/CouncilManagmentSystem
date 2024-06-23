@@ -30,6 +30,13 @@ namespace CouncilsManagmentSystem.Services
             var departments = await _context.departments.OrderBy(x => x.name).Include(z => z.Collage).Select(z => new { ID = z.id, Name = z.name, collagename = z.Collage.Name }).ToListAsync();
             return departments;
         }
+
+        public async Task<object> GetCollagetByIdDep(int id)
+        {
+            var collage1 = await _context.departments.Where(x => x.id == id).Include(a => a.Collage).Select(a => new { Collage = a.Collage.Name }).FirstOrDefaultAsync();
+            return collage1;
+        }
+
         //get id
         public async Task<Department> GetDepartmentById(int id)
         {

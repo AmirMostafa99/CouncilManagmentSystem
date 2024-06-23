@@ -11,6 +11,7 @@ namespace CouncilsManagmentSystem.Services
         Department UpdateDepartment(Department department);
         Department DeleteDepartment(Department department);
         Task<IEnumerable<Department>> get_dep_byIDCollage(int id);
+        Task<object> GetCollagetByIdDep(int id);
 
     }
 }

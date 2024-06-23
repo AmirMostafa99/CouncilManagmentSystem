@@ -1,4 +1,6 @@
-﻿namespace CouncilsManagmentSystem.DTOs
+﻿using CouncilsManagmentSystem.Attributes;
+
+namespace CouncilsManagmentSystem.DTOs
 {
     public class updateuserDTO
     {
@@ -11,7 +13,7 @@
 
         public string? administrative_degree { get; set; }
 
-
+        [AllowedExtensions( ".jpg")]
         public IFormFile img { get; set; }
 
 

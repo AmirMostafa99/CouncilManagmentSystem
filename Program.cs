@@ -4,37 +4,21 @@ using CouncilsManagmentSystem.Settings;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Writers;
+using Microsoft.OpenApi.Models;
 using System.Text;
 using CouncilsManagmentSystem.Configurations;
-using Microsoft.OpenApi.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.AspNetCore.Identity.UI;
 using CouncilsManagmentSystem.Seeds;
-using System.ComponentModel;
 using OfficeOpenXml;
 using Microsoft.AspNetCore.Authorization;
-using CouncilsManagmentSystem.Models;
-using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 
-
-
-
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-// 1.DbContext
+// 1. DbContext
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
@@ -44,28 +28,26 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 {
     options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
 });
+
+// Configure CORS for both React and Flutter development environments
 builder.Services.AddCors(options =>
-
 {
+    options.AddPolicy("AllowReactDev", builder =>
+    {
+        builder.WithOrigins("http://localhost:3000")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
 
-    options.AddPolicy("AllowReactDev",
-
-        builder =>
-
-        {
-
-            builder.WithOrigins("http://localhost:3000")
-
-                           .AllowAnyHeader()
-
-                           .AllowAnyMethod()
-
-                           .AllowCredentials();
-
-        });
-
+    options.AddPolicy("AllowFlutterDev", builder =>
+    {
+        builder.WithOrigins("http://localhost:8080")
+               .AllowAnyHeader()
+               .AllowAnyMethod()
+               .AllowCredentials();
+    });
 });
-
 
 builder.Services.AddTransient<ICollageServies, CollageServies>();
 builder.Services.AddTransient<IDepartmentServies, DepartmentServies>();
@@ -75,8 +57,7 @@ builder.Services.AddTransient<ICouncilsServies, CouncilsServies>();
 builder.Services.AddTransient<ICouncilMembersServies, CouncilMembersServies>();
 builder.Services.AddTransient<IPermissionsServies, PermissionsServies>();
 
-
-// Configure authorization policies 
+// Configure authorization policies
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAddMembersPermission", policy =>
@@ -112,24 +93,17 @@ builder.Services.AddAuthorization(options =>
 // Register scoped authorization handler
 builder.Services.AddScoped<IAuthorizationHandler, ScopedPermissionsAuthorizationHandler>();
 
-
-
-
-
-
-
-
-//excel
+// Configure Excel package license
 OfficeOpenXml.LicenseContext licenseContext = OfficeOpenXml.LicenseContext.NonCommercial;
 ExcelPackage.LicenseContext = licenseContext;
-
 
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
-                .AddDefaultTokenProviders()   // for Forget password method
+                .AddDefaultTokenProviders()
                 .AddDefaultUI();
+
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
 
 builder.Services.AddAuthentication(options =>
@@ -137,26 +111,23 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-
 }).AddJwtBearer(jwt =>
 {
     var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtConfig:Secret").Value);
     jwt.SaveToken = true;
-    jwt.TokenValidationParameters = new TokenValidationParameters() // this code create a token for user
+    jwt.TokenValidationParameters = new TokenValidationParameters()
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false, // for developement but when u are deployment will be true
-        ValidateAudience = false, // for developement but when u are deployment will be true
-        RequireExpirationTime = false, // for development --mean to be updated when refresh token is added
-        ValidateLifetime = true, // ceck the time live for the token
+        ValidateIssuer = false, // for development; set to true in production
+        ValidateAudience = false, // for development; set to true in production
+        RequireExpirationTime = false, // for development; set to true in production
+        ValidateLifetime = true,
     };
 });
 
-
 builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
 builder.Services.AddTransient<IMailingService, MailingService>();
-
 
 builder.Services.Configure<IdentityOptions>(options =>
 {
@@ -168,22 +139,17 @@ builder.Services.Configure<IdentityOptions>(options =>
 });
 
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-
 builder.Services.AddSwaggerGen(swagger =>
 {
-    // this is generate the default UI for swagger documentation
     swagger.SwaggerDoc("v1", new OpenApiInfo
     {
         Version = "v1",
         Title = "ASP.NET 6 Web API",
-        Description = "Council Managment System Privacy"
-
+        Description = "Council Management System API"
     });
-    // to   enable authorization using swagger  JWT
     swagger.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme()
     {
         Name = "Authorization",
@@ -191,61 +157,46 @@ builder.Services.AddSwaggerGen(swagger =>
         Scheme = "Bearer",
         BearerFormat = "JWT",
         In = ParameterLocation.Header,
-        Description = "Enter bearer [space] and then your valid token in the text"
+        Description = "Enter 'Bearer [space] and then your valid token'"
     });
     swagger.AddSecurityRequirement(new OpenApiSecurityRequirement
     {
         {
-        new OpenApiSecurityScheme
-        {
+            new OpenApiSecurityScheme
+            {
                 Reference = new OpenApiReference
                 {
                     Type = ReferenceType.SecurityScheme,
                     Id = "Bearer"
                 }
-
             },
             new string[] {}
         }
-
     });
 });
 
-
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-
-
+// Configure the HTTP request pipeline
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseDeveloperExceptionPage();
-
-
 app.UseHttpsRedirection();
-
 app.UseRouting();
 
-
-
 // Enable CORS
-
 app.UseCors("AllowReactDev");
-
+app.UseCors("AllowFlutterDev");
 
 app.UseAuthentication();
 app.UseAuthorization();
 
-
-
 app.MapControllers();
-
 
 var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 using var scope = scopeFactory.CreateScope();
 var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
-
 
 // Seed data and configure logging
 using (var scope2 = app.Services.CreateScope())
@@ -271,7 +222,5 @@ using (var scope2 = app.Services.CreateScope())
         logger.LogWarning(ex, "An error occurred while seeding data");
     }
 }
-
-
 
 app.Run();
