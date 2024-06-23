@@ -18,9 +18,9 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
-        //[Authorize]
+        [Authorize]
 
-       // [Authorize(Policy = "RequireAddHallPermission")]
+        [Authorize(Policy = "RequireAddHallPermission")]
         [HttpPost(template: "AddHall")]
 
         public IActionResult CreateHall([FromBody] HallDTOs Dto)
