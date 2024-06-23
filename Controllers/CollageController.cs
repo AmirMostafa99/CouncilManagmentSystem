@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace CouncilsManagmentSystem.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class CollageController : ControllerBase
     {
@@ -19,7 +19,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
         [Authorize]
         //get all collages
-        [HttpGet(template: "GetAllCollages")]
+        [HttpGet("GetAllCollages")]
         public async Task<IActionResult> getAllcollages()
         {
             var collages = await _collageServies.getAllcollages();
@@ -27,7 +27,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
         [Authorize]
         //get collage by id
-        [HttpGet(template: "GetCollageBy{id}")]
+        [HttpGet( "GetCollageBy{id}")]
         public async Task<IActionResult> getByid(int id)
         {
             var collage = _collageServies.GetCollageByid(id);
@@ -36,8 +36,8 @@ namespace CouncilsManagmentSystem.Controllers
         //add collages in db
         [Authorize]
         [Authorize(Policy = "RequireAddCollagePermission")]
-        [HttpPost(template: "AddCollage")]
-        public async Task<IActionResult> AddCollage([FromForm] AddCollageDTO dto)
+        [HttpPost("AddCollage")]
+        public async Task<IActionResult> AddCollage([FromBody] AddCollageDTO dto)
         {
             if (ModelState.IsValid)
             {
@@ -50,7 +50,7 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize]
         [Authorize(Policy = "RequireAddCollagePermission")]
         //update collages
-        [HttpPut(template:"UpdateCollage{id}")]
+        [HttpPut("UpdateCollage{id}")]
         public async Task<IActionResult> updateCollage(int id, AddCollageDTO dto)
         {
             if (ModelState.IsValid)

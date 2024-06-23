@@ -149,5 +149,13 @@ namespace CouncilsManagmentSystem.Services
             var council = await _context.CouncilMembers.FirstOrDefaultAsync(x => x.CouncilId == councilId && x.MemberId == userId);
             return council;
         }
+
+        public CouncilMembers updatecouncilmember(CouncilMembers member)
+        {
+            _context.Update(member);
+            _context.SaveChanges();
+
+            return member;
+        }
     }
 }

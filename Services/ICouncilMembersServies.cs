@@ -13,6 +13,7 @@ namespace CouncilsManagmentSystem.Services
         Task<object> GetCouncilbyEmailmember(string email, int council);
         Task<IEnumerable<ApplicationUser>> getAllUserInDep(int id);
         Task<IEnumerable<object>> GetAllNextCouncilsbyidmember(string idmember);
+        CouncilMembers updatecouncilmember(CouncilMembers member);
 
     }
 }
