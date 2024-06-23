@@ -18,10 +18,10 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
-        [Authorize]
+        //[Authorize]
 
-        [Authorize(Policy = "RequireAddHallPermission")]
-        [HttpPost(template: "CreateHall")]
+       // [Authorize(Policy = "RequireAddHallPermission")]
+        [HttpPost(template: "AddHall")]
 
         public IActionResult CreateHall([FromBody] HallDTOs Dto)
         {
@@ -33,7 +33,8 @@ namespace CouncilsManagmentSystem.Controllers
             var hall = new Hall
             {
                 Name = Dto.Name,
-                NumberOfSeats = Dto.NumberOfSeats
+                NumberOfSeats = Dto.NumberOfSeats,
+                Location = Dto.Location
             };
 
             _context.Halls.Add(hall);
@@ -78,7 +79,7 @@ namespace CouncilsManagmentSystem.Controllers
 
             hall.Name = Dto.Name;
             hall.NumberOfSeats = Dto.NumberOfSeats;
-
+            hall.Location = Dto.Location;   
             _context.Entry(hall).State = EntityState.Modified;
 
              await _context.SaveChangesAsync();
