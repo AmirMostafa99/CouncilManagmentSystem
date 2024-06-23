@@ -14,5 +14,6 @@ namespace CouncilsManagmentSystem.Services
         Task<IEnumerable<ApplicationUser>> getAllUserByIdCollage(int id_collage);
         ApplicationUser Updateusert(ApplicationUser user);
         ApplicationUser Deleteuser(ApplicationUser user);
+        Task<object> getuserObjectByid(string id);
     }
 }

@@ -9,11 +9,13 @@ namespace CouncilsManagmentSystem.Services
 
         private readonly UserManager<ApplicationUser> _usermanager;
         private readonly ApplicationDbContext _context;
+        private readonly IDepartmentServies _departmentservies;
 
-        public UserServies(UserManager<ApplicationUser> usermanager, ApplicationDbContext context)
+        public UserServies(UserManager<ApplicationUser> usermanager, ApplicationDbContext context , IDepartmentServies departmentservies)
         {
             _usermanager = usermanager;
             _context = context;
+            _departmentservies = departmentservies;
         }
 
         public async Task<ApplicationUser> CreateUserAsync(ApplicationUser user)
@@ -86,8 +88,37 @@ namespace CouncilsManagmentSystem.Services
             var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
             return (user);
         }
- 
 
+        public async Task<object> getuserObjectByid(string id)
+        {
+            var user = await _context.Users.FirstOrDefaultAsync(x => x.Id == id);
+            var collage1 = await _departmentservies.GetCollagetByIdDep(user.DepartmentId);
+            var dep=await _departmentservies.GetDepartmentById(user.DepartmentId);
+            //var ob = new
+            //{
+            //    user.Id,
+            //    user.FullName,
+            //    user.Email,
+            //    depname= dep.name,               
+            //    collage1,
+            //    user.img,
+            //    user.Birthday,
+            //    user.academic_degree,
+            //    user.administrative_degree,
+            //    user.OTP,
+            //    user.UserName,
+            //    user.IsVerified,
+            //    user.PhoneNumber
+
+            //};
+            var ob = new
+            {
+                user,
+                collage1,
+                Department = dep.name
+            };
+            return (ob);
+        }
 
         public ApplicationUser Updateusert(ApplicationUser user)
         {

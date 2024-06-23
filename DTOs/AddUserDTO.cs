@@ -19,7 +19,7 @@ namespace CouncilsManagmentSystem.DTOs
 
         public DateTime? Birthday { get; set; }
 
-        public int? DepartmentId { get; set; }
+        public int DepartmentId { get; set; }
 
 
 

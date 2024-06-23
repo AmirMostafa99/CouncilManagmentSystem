@@ -23,7 +23,7 @@ namespace CouncilsManagmentSystem.Models
         [DefaultValue("defaultimage.png")]
         public string? img { get; set; }
 
-        public int? DepartmentId { get; set; }
+        public int DepartmentId { get; set; }
         public Department Department { get; set; }
 
         [InverseProperty("ChairmanCouncil")]

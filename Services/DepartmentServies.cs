@@ -34,7 +34,7 @@ namespace CouncilsManagmentSystem.Services
         public async Task<object> GetCollagetByIdDep(int id)
         {
             var collage1 = await _context.departments.Where(x => x.id == id).Include(a => a.Collage).Select(a => new { Collage = a.Collage.Name }).FirstOrDefaultAsync();
-            return collage1;
+            return collage1.Collage;
         }
 
         //get id
