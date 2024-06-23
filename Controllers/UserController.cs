@@ -59,13 +59,7 @@ namespace CouncilsManagmentSystem.Controllers
             _permissionsServies=permissionsServies;
         }
 
-       
-
-
-
-
-
-
+ 
 
         [Authorize]
        // [Authorize(Roles = "SuperAdmin,SubAdmin")]
@@ -318,7 +312,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         
-        //[Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
+        [Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
         [HttpPost("ActivateEmail")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
         {
@@ -362,14 +356,13 @@ namespace CouncilsManagmentSystem.Controllers
             });
         }
 
-        //[AllowAnonymous]
+        [AllowAnonymous]
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequestDto dto)
         {
             if (ModelState.IsValid)
             {
-                // check if the user exist
-                var existing_user = await _usermanager.FindByEmailAsync(dto.Email);
+               var existing_user = await _usermanager.FindByEmailAsync(dto.Email);
                 
                 if (existing_user == null)
                 {
@@ -419,24 +412,21 @@ namespace CouncilsManagmentSystem.Controllers
             if (ModelState.IsValid)
             {
 
-                // check if the user exist
                 var existing_user = await _usermanager.FindByEmailAsync(dto.Email);
 
                 if (existing_user == null)
                 {
                     return BadRequest("The User Not Exist");
                 }
-                // Generate a random 5-digit OTP
                 Random rand = new Random();
                 int otp = rand.Next(100000, 999999);
-                // Send the generated OTP to the user via email
+      
                 var subject = "Council Management System Password Reset Not-replay";
                 var body = $"Dear User,\n\nYou have requested to reset your password for the Council Management System. Please use this OTP to reset your password. Your (OTP) is: {otp}.";
 
                 await _mailingService.SendEmailAsync(dto.Email, subject, body);
 
 
-                // Save the generated OTP for the user in the database
                 existing_user.OTP = otp;
                 await _usermanager.UpdateAsync(existing_user);
 
@@ -465,7 +455,7 @@ namespace CouncilsManagmentSystem.Controllers
 
         }
         [Authorize]
-        [AllowAnonymous]
+        //[AllowAnonymous]
         [HttpPost("ConfirmOTP")]
         public async Task<IActionResult> ConfirmOTP([FromBody] ConfirmOTPDto dto)
         {
@@ -600,26 +590,67 @@ namespace CouncilsManagmentSystem.Controllers
             }
         }
 
-        //[AllowAnonymous]
         [Authorize]
         [HttpPost("Logout")]
-        public async Task<IActionResult> Logout()
+        public async Task<IActionResult> Logout(LogoutDto dto)
         {
-            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
-            return Ok(new AuthenticationResault()
+
+            if (!ModelState.IsValid)
             {
-                Result = true,
-                Errors = new List<string>()
+                return BadRequest("Invalid payload.");
+            }
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken validatedToken;
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
+                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
+            };
+
+            try
+            {
+
+                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
+                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
+
+
+                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+                if (existingUser == null)
+                {
+                    return BadRequest("The user does not exist.");
+                }
+
+                await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+                 return Ok(new AuthenticationResault()
                   {
-                      "Logout successful."
-                  }
-                            });
+                    Result = true,
+                    Errors = new List<string>()
+                    {
+                          "Logout successful."
+                    }
+                  });
+            }
+            catch (SecurityTokenException)
+            {
+                return BadRequest("Invalid token.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
         }
+
+
+
         [Authorize]
         [Authorize(Policy = "RequireDeactiveUserPermission")]
         // [Authorize(Roles = "SuperAdmin,SubAdmin")]
         [HttpPut("DeactivateUser")]
-        public async Task<IActionResult> DeactivateUser([FromBody] DeactivateUserRequestDto dto)
+        public async Task<IActionResult> DeactivateUser([FromHeader] DeactivateUserRequestDto dto)
         {
             var user = await _usermanager.FindByEmailAsync(dto.Email);
             if (user == null)
@@ -638,15 +669,40 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(new AuthenticationResault()
             {
                 Errors = new List<string>()
-         {
-             "The User Deactivated"
-         },
+                {
+                      "The User Deactivated"
+                },
                 Result = true,
 
             });
         }
-        //TODO: SuberAdmin add role to users
-        // [Authorize(Roles = "SuperAdmin")]
+        [Authorize]
+        [Authorize(Policy = "RequireDeactiveUserPermission")]
+        [HttpPut("ActivateUserbyAdmin")]
+        public async Task<IActionResult> ActivateUserbyAdmin([FromBody] ActivateUserByAdminRequestDto dto)
+        {
+            var user = await _usermanager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                return NotFound("Invalid Email");
+            }
+
+            user.IsVerified = true;
+            
+            await _usermanager.UpdateAsync(user);
+            
+            return Ok(new AuthenticationResault()
+            {
+                
+                Errors = new List<string>()
+                {
+                        "The User Activated successful"
+                 },
+                Result = true,
+
+            });
+        }
+
         [Authorize]
         [Authorize(Policy = "RequireUpdatepermission")]
         [HttpPost("AssignRole")]
@@ -695,40 +751,9 @@ namespace CouncilsManagmentSystem.Controllers
                 return Ok("No changes made to the role.");
             }
         }
-        //TODO: suberadmin Add permssion to Users
-        
-
-        //TODO: when u assign role to user add this role in the token
 
 
-        private string GeneratJwtToken(ApplicationUser user)
-        {
-            var JwtTokenHandler = new JwtSecurityTokenHandler();
-            var key = Encoding.UTF8.GetBytes(_configuration.GetSection("JwtConfig:Secret").Value);
-
-            // Token descriptor
-            var TokenDescriptor = new SecurityTokenDescriptor()
-            {
-                Subject = new ClaimsIdentity(new[]
-                {
-                    new Claim("Id", user.Id),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Email, value: user.Email),
-                    new Claim(JwtRegisteredClaimNames.Jti, value: Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, value: DateTime.Now.ToUniversalTime().ToString())
-                }),
-
-
-                Expires = DateTime.Now.AddHours(1),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
-            };
-
-            var token = JwtTokenHandler.CreateToken(TokenDescriptor);
-            var jwtToken = JwtTokenHandler.WriteToken(token);
-            return jwtToken;
-        }
-
-
+       
 
 
         [Authorize]
@@ -757,6 +782,35 @@ namespace CouncilsManagmentSystem.Controllers
             
             return Ok(user);
         }
+
+        private string GeneratJwtToken(ApplicationUser user)
+        {
+            var JwtTokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_configuration.GetSection("JwtConfig:Secret").Value);
+
+            // Token descriptor
+            var TokenDescriptor = new SecurityTokenDescriptor()
+            {
+                Subject = new ClaimsIdentity(new[]
+                {
+                    new Claim("Id", user.Id),
+                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+                    new Claim(JwtRegisteredClaimNames.Email, value: user.Email),
+                    new Claim(JwtRegisteredClaimNames.Jti, value: Guid.NewGuid().ToString()),
+                    new Claim(JwtRegisteredClaimNames.Iat, value: DateTime.Now.ToUniversalTime().ToString())
+                }),
+
+
+                Expires = DateTime.Now.AddHours(300),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+            };
+
+            var token = JwtTokenHandler.CreateToken(TokenDescriptor);
+            var jwtToken = JwtTokenHandler.WriteToken(token);
+            return jwtToken;
+        }
+
+
 
     }
 }

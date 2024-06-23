@@ -43,7 +43,6 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-
         [Authorize(Policy = "RequireAddHallPermission")]
         [HttpDelete(template: "DeleteHall")]
 
@@ -62,7 +61,6 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-
         [Authorize(Policy = "RequireAddHallPermission")]
         [HttpPut(template: "UpdateHall")]
         public async Task<IActionResult> UpdateHall(int id, [FromBody] HallDTOs Dto)
@@ -88,7 +86,8 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok("The Hall Updated");
         }
 
-        
+        [Authorize]
+        [Authorize(Policy = "RequireAddHallPermission")]
         [HttpGet(template: "SearchHallByName")]
 
         public IActionResult SearchHallsByName([FromQuery] string name)
@@ -105,6 +104,16 @@ namespace CouncilsManagmentSystem.Controllers
                 return NotFound("No halls found with the given name.");
             }
 
+            return Ok(halls);
+        }
+
+
+        [Authorize]
+        [Authorize(Policy = "RequireAddHallPermission")]
+        [HttpGet(template: "GetAllHalls")]
+        public IActionResult GetAllHalls()
+        {
+            var halls = _context.Halls.ToList();
             return Ok(halls);
         }
 

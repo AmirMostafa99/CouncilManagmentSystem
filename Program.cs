@@ -26,6 +26,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json.Serialization;
 
 
 
@@ -39,7 +40,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 // Add services
-
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.Preserve;
+});
 builder.Services.AddCors(options =>
 
 {
@@ -72,7 +76,7 @@ builder.Services.AddTransient<ICouncilMembersServies, CouncilMembersServies>();
 builder.Services.AddTransient<IPermissionsServies, PermissionsServies>();
 
 
-// Configure authorization policies
+// Configure authorization policies 
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("RequireAddMembersPermission", policy =>

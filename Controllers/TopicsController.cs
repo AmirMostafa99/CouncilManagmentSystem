@@ -147,6 +147,35 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(topics);
         }
 
+        [Authorize]
+        [Authorize(Policy = "RequireAddCouncilPermission")]
+        [HttpPost("Report")]
+        public async Task<IActionResult> Report([FromBody] ReportRequestDto reportRequest)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var council = await _context.Councils.FindAsync(reportRequest.CouncilId);
+            if (council == null)
+            {
+                return NotFound($"Council with ID {reportRequest.CouncilId} not found.");
+            }
+
+            var topics = await _context.topics
+                .Where(t => t.CouncilId == reportRequest.CouncilId && reportRequest.TopicIds.Contains(t.Id))
+                .ToListAsync();
+
+            if (topics == null || topics.Count == 0)
+            {
+                return NotFound("No topics found for the provided IDs.");
+            }
+
+            return Ok(topics);
+        }
+
+
 
 
 
