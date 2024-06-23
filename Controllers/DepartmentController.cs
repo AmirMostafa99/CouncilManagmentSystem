@@ -24,7 +24,7 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize(Policy = "RequireAddDepartmentPermission")]
         //Add department
         [HttpPost(template: "AddDepartment")]
-        public async Task<IActionResult> AddDepartment([FromForm] AddDepartmntDto dto)
+        public async Task<IActionResult> AddDepartment([FromBody] AddDepartmntDto dto)
         {
             if (ModelState.IsValid)
             {
