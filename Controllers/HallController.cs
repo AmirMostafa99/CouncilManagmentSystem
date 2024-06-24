@@ -47,9 +47,9 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize(Policy = "RequireAddHallPermission")]
         [HttpDelete(template: "DeleteHall")]
 
-        public async Task<IActionResult> DeleteHall([FromBody] DeleteHallDto dto)
+        public async Task<IActionResult> DeleteHall(int id)
         {
-            var hall = await _context.Halls.FindAsync(dto.id);
+            var hall = await _context.Halls.FindAsync(id);
             if (hall == null)
             {
                 return NotFound();
