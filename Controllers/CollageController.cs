@@ -27,7 +27,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
         [Authorize]
         //get collage by id
-        [HttpGet( "GetCollageBy{id}")]
+        [HttpGet("GetCollageBy{id}")]
         public async Task<IActionResult> getByid(int id)
         {
             var collage = _collageServies.GetCollageByid(id);
