@@ -114,6 +114,7 @@ namespace CouncilsManagmentSystem.Controllers
             council.TypeCouncilId = DTO.TypeCouncilId;
             council.HallId = DTO.HallId;
             var councilres = await _councilServies.UpdateCouncil(council);
+
             return Ok(councilres);
         }
 

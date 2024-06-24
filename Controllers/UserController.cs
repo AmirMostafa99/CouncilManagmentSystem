@@ -773,15 +773,15 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
-       // [Authorize]
+        [Authorize]
         [HttpGet(template: "Profile")]
         public async Task<IActionResult> Profile()
         {
-            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
 
-            //var user = await _userServies.getuserByEmail(userEmail);
-            var userEmail = "Mariam.20375785@compit.aun.edu.eg";
+            
+            
             var user = await _userServies.getuserByEmail(userEmail);
             var user1 = await _userServies.getuserObjectByid(user.Id);
 

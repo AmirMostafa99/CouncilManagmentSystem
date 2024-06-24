@@ -71,6 +71,7 @@ namespace CouncilsManagmentSystem.Controllers
                     MemberId = user.Id
                 };
                 await _councilMemberService.Addmember(councilMember);
+                ///
             }
             return Ok();
         }

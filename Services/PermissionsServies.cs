@@ -94,29 +94,38 @@ namespace CouncilsManagmentSystem.Services
         public async Task<object> getObjectpermissionByid(string userid)
         {
             var per = await _context.permissionss.FirstOrDefaultAsync(x => x.userId == userid);
-            var user=await _userServies.getuserByid(userid);
-            var permission = new
+            if (per != null)
             {
-                user.FullName,
-                user.Email,
-                per.AddMembers,
-                per.AddTopic,
-                per.AddResult,
-                per.AddMembersByExcil,
-                per.EditTypeCouncil,
-                per.CreateTypeCouncil,
-                per.EditCouncil,
-                per.AddCouncil,
-                per.Arrange,
-                per.AddCollage,
-                per.AddDepartment,
-                per.AddHall,
-                per.Updatepermission,
-                per.DeactiveUser,
-                per.UpdateUser
-                
-            };
-            return permission;
+
+
+                var user = await _userServies.getuserByid(userid);
+                var permission = new
+                {
+                    user.FullName,
+                    user.Email,
+                    per.AddMembers,
+                    per.AddTopic,
+                    per.AddResult,
+                    per.AddMembersByExcil,
+                    per.EditTypeCouncil,
+                    per.CreateTypeCouncil,
+                    per.EditCouncil,
+                    per.AddCouncil,
+                    per.Arrange,
+                    per.AddCollage,
+                    per.AddDepartment,
+                    per.AddHall,
+                    per.Updatepermission,
+                    per.DeactiveUser,
+                    per.UpdateUser
+
+                };
+                return permission;
+            }
+            else
+            {
+                return null;
+            }
 
         }
 
