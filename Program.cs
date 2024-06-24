@@ -30,24 +30,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 // Configure CORS for both React and Flutter development environments
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowReactDev", builder =>
-    {
-        builder.WithOrigins("http://localhost:3000")
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials();
-    });
-
-    options.AddPolicy("AllowFlutterDev", builder =>
-    {
-        builder.WithOrigins("http://localhost:8080")
-               .AllowAnyHeader()
-               .AllowAnyMethod()
-               .AllowCredentials();
-    });
-});
+builder.Services.AddCors();
 
 builder.Services.AddTransient<ICollageServies, CollageServies>();
 builder.Services.AddTransient<IDepartmentServies, DepartmentServies>();
@@ -185,8 +168,7 @@ app.UseHttpsRedirection();
 app.UseRouting();
 
 // Enable CORS
-app.UseCors("AllowReactDev");
-app.UseCors("AllowFlutterDev");
+app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 
 app.UseAuthentication();
 app.UseAuthorization();

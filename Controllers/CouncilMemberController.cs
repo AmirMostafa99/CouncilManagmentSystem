@@ -77,7 +77,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
         [Authorize]
         [HttpPut(template: "Confirm attendance")]
-        public async Task<IActionResult> ConfirmAttendance([FromForm] AddConfirmAttendanceDto dto)
+        public async Task<IActionResult> ConfirmAttendance([FromBody] AddConfirmAttendanceDto dto)
         {
             if (!ModelState.IsValid)
             {

@@ -1,12 +1,10 @@
 ﻿namespace CouncilsManagmentSystem.DTOs
 {
-    public class HallDTOs
+    public class HallDetailDTO
     {
-        public int id { get; set; }
+        public int Id { get; set; }
         public string Name { get; set; }
-        public string Location { get; set; }
         public int NumberOfSeats { get; set; }
-
-
+        public string Location { get; set; }
     }
 }

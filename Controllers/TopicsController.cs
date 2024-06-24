@@ -73,20 +73,20 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-        [HttpGet("SearchTopicsByTitle")]
-        public async Task<IActionResult> SearchTopicsByTitle(string title)
+        [HttpPost("SearchTopicsByTitle")]
+        public async Task<IActionResult> SearchTopicsByTitle([FromBody] SearchTopicsByTitleDto dto)
         {
             // Check if the title exists in the database
-            var existingTopic = await _context.topics.AnyAsync(t => t.Title == title);
+            var existingTopic = await _context.topics.AnyAsync(t => t.Title == dto.title);
 
             if (!existingTopic)
             {
-                return NotFound($"No topic found with the title {title}.");
+                return NotFound($"No topic found with the title {dto.title}.");
             }
 
             // Search for topics that contain the provided title
             var topics = await _context.topics
-                .Where(t => t.Title.Contains(title))
+                .Where(t => t.Title.Contains(dto.title))
                 .ToListAsync();
 
             return Ok(topics);
@@ -99,6 +99,8 @@ namespace CouncilsManagmentSystem.Controllers
             var topics = await _context.topics.ToListAsync();
             return Ok(topics);
         }
+
+
         [Authorize]
         [Authorize(Policy = "RequireEditCouncilPermission")]
         [HttpPost("AddResultToTopic")]
@@ -174,9 +176,6 @@ namespace CouncilsManagmentSystem.Controllers
 
             return Ok(topics);
         }
-
-
-
 
 
 

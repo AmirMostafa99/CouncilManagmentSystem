@@ -500,12 +500,14 @@ namespace CouncilsManagmentSystem.Controllers
 
 
                 existingUser.OTP = null;
-                var newToken = GeneratJwtToken(existingUser);
+                
                 await _usermanager.UpdateAsync(existingUser);
-
+                var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
+                var jwrToken = GeneratJwtToken(existingUser);
                 return Ok(new AuthenticationResault()
                 {
-                    Token = newToken,
+                    Permission = UserPermission,
+                    Token = jwrToken,
                     Result = true,
                     Errors = new List<string>()
             {
@@ -571,11 +573,12 @@ namespace CouncilsManagmentSystem.Controllers
                     return BadRequest("Failed to reset the password.");
                 }
 
-                var newToken = GeneratJwtToken(existingUser);
-
+                var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
+                var jwrToken = GeneratJwtToken(existingUser);
                 return Ok(new AuthenticationResault()
                 {
-                    Token = newToken,
+                    Permission = UserPermission,
+                    Token = jwrToken,
                     Result = true,
                     Errors = new List<string>()
                     {
@@ -653,7 +656,7 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize(Policy = "RequireDeactiveUserPermission")]
         // [Authorize(Roles = "SuperAdmin,SubAdmin")]
         [HttpPut("DeactivateUser")]
-        public async Task<IActionResult> DeactivateUser([FromHeader] DeactivateUserRequestDto dto)
+        public async Task<IActionResult> DeactivateUser([FromBody] DeactivateUserRequestDto dto)
         {
             var user = await _usermanager.FindByEmailAsync(dto.Email);
             if (user == null)

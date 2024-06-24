@@ -47,9 +47,9 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize(Policy = "RequireAddHallPermission")]
         [HttpDelete(template: "DeleteHall")]
 
-        public async Task<IActionResult> DeleteHall(int id)
+        public async Task<IActionResult> DeleteHall([FromBody] DeleteHallDto dto)
         {
-            var hall = await _context.Halls.FindAsync(id);
+            var hall = await _context.Halls.FindAsync(dto.id);
             if (hall == null)
             {
                 return NotFound();
@@ -61,17 +61,17 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok("The Hall Is Deleted");
         }
 
-        [Authorize]
-        [Authorize(Policy = "RequireAddHallPermission")]
+        //[Authorize]
+        //[Authorize(Policy = "RequireAddHallPermission")]
         [HttpPut(template: "UpdateHall")]
-        public async Task<IActionResult> UpdateHall(int id, [FromBody] HallDTOs Dto)
+        public async Task<IActionResult> UpdateHall([FromBody] HallDTOs Dto)
         {
             if (!ModelState.IsValid)
             {
                 return BadRequest(ModelState);
             }
 
-            var hall = await _context.Halls.FindAsync(id);
+            var hall = await _context.Halls.FindAsync(Dto.id);
             if (hall == null)
             {
                 return NotFound();
@@ -89,16 +89,16 @@ namespace CouncilsManagmentSystem.Controllers
 
         [Authorize]
         [Authorize(Policy = "RequireAddHallPermission")]
-        [HttpGet(template: "SearchHallByName")]
+        [HttpPost(template: "SearchHallByName")]
 
-        public IActionResult SearchHallsByName([FromQuery] string name)
+        public IActionResult SearchHallsByName([FromBody] SearchHallsByNameDto dto)
         {
-            if (string.IsNullOrEmpty(name))
+            if (string.IsNullOrEmpty(dto.name))
             {
                 return BadRequest("Name parameter is required.");
             }
 
-            var halls = _context.Halls.Where(h => h.Name.Contains(name)).ToList();
+            var halls = _context.Halls.Where(h => h.Name.Contains(dto.name)).ToList();
 
             if (halls.Count == 0)
             {
@@ -108,7 +108,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(halls);
         }
 
-
+        
         [Authorize]
         [Authorize(Policy = "RequireAddHallPermission")]
         [HttpGet(template: "GetAllHalls")]
@@ -116,6 +116,30 @@ namespace CouncilsManagmentSystem.Controllers
         {
             var halls = _context.Halls.ToList();
             return Ok(halls);
+        }
+
+        [Authorize]
+        [Authorize(Policy = "RequireAddHallPermission")]
+        [HttpPost("GetHallById")]
+        public async Task<IActionResult> GetHallById([FromBody] GetHallByIdDTO request)
+        {
+            var hall = await _context.Halls
+                                    .Where(h => h.Id == request.HallId)
+                                    .Select(h => new HallDetailDTO
+                                    {
+                                        Id = h.Id,
+                                        Name = h.Name,
+                                        NumberOfSeats = h.NumberOfSeats,
+                                        Location = h.Location
+                                    })
+                                    .FirstOrDefaultAsync();
+
+            if (hall == null)
+            {
+                return NotFound();
+            }
+
+            return Ok(hall);
         }
 
     }

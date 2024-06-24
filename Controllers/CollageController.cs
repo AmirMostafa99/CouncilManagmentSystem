@@ -51,11 +51,11 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize(Policy = "RequireAddCollagePermission")]
         //update collages
         [HttpPut("UpdateCollage{id}")]
-        public async Task<IActionResult> updateCollage(int id, AddCollageDTO dto)
+        public async Task<IActionResult> updateCollage(AddCollageDTO dto)
         {
             if (ModelState.IsValid)
             {
-                var collage = await _collageServies.GetCollageByid(id);
+                var collage = await _collageServies.GetCollageByid(dto.id);
                 if (collage == null)
                 {
                     return NotFound("Not found this collage");
