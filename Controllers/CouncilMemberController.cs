@@ -51,8 +51,8 @@ namespace CouncilsManagmentSystem.Controllers
             _notificationServies = notificationServies;
         }
 
-       // [Authorize]
-        // [Authorize(Policy = "RequireAddCouncilPermission")]
+        [Authorize]
+         [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost("AddCouncilMember")]
         public async Task<IActionResult> AddCouncilMember([FromBody] AddCouncilmemberDTO dto)
         {
@@ -195,7 +195,7 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-
+        [Authorize]
         [HttpGet(template: "GetAllCouncilsbyidmember")]
         public async Task<IActionResult> GetAllCouncilsbyidmember(string iduser)
         {
@@ -209,7 +209,7 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-
+        [Authorize]
         [HttpGet(template: "GetAllCouncilsbyEmailmember")]
         public async Task<IActionResult> GetAllCouncilsbyEmailmember(string email)
         {
@@ -220,7 +220,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return NotFound();
         }
-
+        [Authorize]
         [HttpDelete(template: "delete")]
         public async Task<IActionResult> delete(int councilId, string email)
         {
@@ -230,6 +230,8 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(res);
 
         }
+
+        [Authorize]
         [HttpGet(template: "ISValidInThisCouncil")]
         public async Task<IActionResult> Checkcouncilbyidmember(string email, int idcouncil)
         {
@@ -238,7 +240,7 @@ namespace CouncilsManagmentSystem.Controllers
 
         }
 
-
+        [Authorize]
         [HttpGet(template: "GetAllUserInCounilType")]
         public async Task<IActionResult> getAllUserInCounilType(int idtypecouncil)
         {

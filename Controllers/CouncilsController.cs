@@ -132,13 +132,13 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
-       // [Authorize]
-        //[Authorize(Policy = "RequireEditCouncilPermission")]
+        [Authorize]
+        [Authorize(Policy = "RequireEditCouncilPermission")]
         [HttpPut(template: "UpdateCouncil")]
         public async Task<IActionResult> updatecouncil(int id,[FromForm] AddCouncilsDTO DTO)
         {
-            // var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userEmail = "Mariam.20375785@compit.aun.edu.eg";
+             var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
             if (userEmail == null)
             {
                 return BadRequest("Please Login");
