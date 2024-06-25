@@ -20,19 +20,29 @@ namespace CouncilsManagmentSystem.Services
 
         public async Task<ApplicationUser> CreateUserAsync(ApplicationUser user)
         {
-            var result = await _usermanager.CreateAsync(user);
+            DateTime now = DateTime.Now;
+            DateTime startDate = new DateTime(1930, 1, 1);
+            DateTime endDate = new DateTime(2004, 1, 1);
 
-            if (result.Succeeded)
-            {
-                await _context.SaveChangesAsync();
-                return user;
-            }
-            else
+            if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
             {
 
-                // return in error in data in users
-                throw new ApplicationException("Failed to Add user .");
+
+                var result = await _usermanager.CreateAsync(user);
+
+                if (result.Succeeded)
+                {
+                    await _context.SaveChangesAsync();
+                    return user;
+                }
+                else
+                {
+
+                    // return in error in data in users
+                    throw new ApplicationException("Failed to Add user .");
+                }
             }
+            throw new ApplicationException("Failed to Add user .");
         }
         /////////////// 
 
@@ -122,9 +132,18 @@ namespace CouncilsManagmentSystem.Services
 
         public ApplicationUser Updateusert(ApplicationUser user)
         {
-            _context.Update(user);
-            _context.SaveChanges();
-            return user;
+            DateTime now = DateTime.Now;
+            DateTime startDate = new DateTime(1970, 1, 1);
+            DateTime endDate = new DateTime(2004, 1, 1);
+
+            if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
+            {
+                _context.Update(user);
+                _context.SaveChanges();
+                return user;
+            }
+            throw new ApplicationException("Failed to Add user .");
+
         }
     }
 

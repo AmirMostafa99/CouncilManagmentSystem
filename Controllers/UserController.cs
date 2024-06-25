@@ -61,9 +61,9 @@ namespace CouncilsManagmentSystem.Controllers
 
  
 
-        [Authorize]
+       // [Authorize]
        // [Authorize(Roles = "SuperAdmin,SubAdmin")]
-        [Authorize(Policy = "RequireAddMembersPermission")]
+        //[Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
         public async Task<IActionResult> Adduser( AddUserDTO user)
         {
@@ -88,9 +88,19 @@ namespace CouncilsManagmentSystem.Controllers
                 adduser.img = "defaultimage.png";
                 //adduser.PasswordHash = password;
                 adduser.IsVerified = false;
-                await _usermanager.CreateAsync(adduser);
-                await _context.SaveChangesAsync();
-                return Ok("User successfully added");
+
+
+                DateTime now = DateTime.Now;
+                DateTime startDate = new DateTime(1970, 1, 1);
+                DateTime endDate = new DateTime(2004, 1, 1);
+
+                if (adduser.Birthday < now && adduser.Birthday > startDate && adduser.Birthday < endDate)
+                {
+                    await _usermanager.CreateAsync(adduser);
+                    await _context.SaveChangesAsync();
+                    return Ok("User successfully added");
+                }
+               
             }
 
             return BadRequest("There is an error in your data.");
@@ -173,7 +183,15 @@ namespace CouncilsManagmentSystem.Controllers
                             user.img = "defaultimage.png";
                             //user.PasswordHash = password;
                             // Save changes to the database
-                            await _userServies.CreateUserAsync(user);
+                            DateTime now = DateTime.Now;
+                            DateTime startDate = new DateTime(1970, 1, 1);
+                            DateTime endDate = new DateTime(2004, 1, 1);
+
+                            if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
+                            {
+                                await _userServies.CreateUserAsync(user);
+                            }
+                            
 
                         }
 
@@ -225,13 +243,13 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        [Authorize]
+        //[Authorize]
         //update user
         [HttpPut(template: "UpdateUser")]
         public async Task<IActionResult> updateUser(string id ,[FromForm] updateuserDTO user )
         {
-
-            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userEmail = "mariam.20375785@compit.aun.edu.eg";
+           // var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userEmail == null)
             {
                 return Unauthorized("User is not authenticated.");
