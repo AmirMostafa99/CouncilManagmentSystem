@@ -107,14 +107,46 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
-        [Authorize]
+       // [Authorize]
         [HttpGet(template: "GetAllCouncilByname")]
         public async Task<IActionResult> getallcouncilsbyname(string name)
         {
+
             if (ModelState.IsValid)
             {
+                //token
+                // var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                var userEmail = "Mariam.20375785@compit.aun.edu.eg";
+                if(userEmail==null)
+                {
+                    return BadRequest("not authorization");
+                }
+                var user = await _userServies.getuserByEmail(userEmail);
+                if(user==null)
+                {
+                    return NotFound("Your Email not found");
+                }
+
                 var councils = await _councilServies.GetCouncilsByTitle(name);
-                return Ok(councils);
+                var councilmembers=new List<Object>();
+                foreach(var councill in councils)
+                {
+                    var councilmem = await _councilMembersServies.GetcouncilmemberlById(councill.Id, user.Id);
+                    if( councilmem!=null)
+                    {
+                        if (councilmem.IsAttending == true )
+                        {
+                            var hall=await _dbContext.Halls.FirstOrDefaultAsync(x=>x.Id==councill.HallId);
+                            if (hall != null)
+                            {
+                                var ob = new { councilName = councill.Title, Date = councill.Date  , Hall=hall.Name};
+                                councilmembers.Add(ob);
+                            }
+                        }
+                        
+                    }
+                }
+                return Ok(councilmembers);
             }
             return BadRequest("you have wrong in your data. ");
         }
