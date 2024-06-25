@@ -18,12 +18,12 @@ namespace CouncilsManagmentSystem.Controllers
             _notificationServies = notificationServies;
             _userServies = userServies;
         }
-        //[Authorize]
-        [HttpGet]
+        [Authorize]
+        [HttpGet(template: "GetAllNotificationForUser")]
         public async Task<IActionResult> GetAllNotificationForUser()
         {
-            // var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userEmail = "Mariam.20375785@compit.aun.edu.eg";
+             var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
             if(userEmail == null)
             {
                 return BadRequest(" Unauthorize");
@@ -37,8 +37,8 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(not);
 
         }
-       // [Authorize]
-        [HttpPut]
+        [Authorize]
+        [HttpPut(template: "UpdateNotification")]
         public async Task<IActionResult> UpdateNotification(int NotId , bool IsSeen)
         {
             var not = await _notificationServies.GetNotifcationById(NotId);
