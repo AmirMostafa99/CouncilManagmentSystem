@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Security.Claims;
 
 namespace CouncilsManagmentSystem.Controllers
 {
@@ -19,19 +20,40 @@ namespace CouncilsManagmentSystem.Controllers
         private readonly ICouncilMembersServies _councilMembersServies;
         private readonly IHubContext<NotificationHub> _hubContext;
         private readonly ApplicationDbContext _dbContext;
+        private readonly IUserServies _userServies;
+        private readonly ITypeCouncilServies _typecouncilservies;
 
-        public CouncilsController(ICouncilsServies councilServies, ICouncilMembersServies councilMembersServies, IHubContext<NotificationHub> hubContext, ApplicationDbContext dbContext)
+        public CouncilsController(ICouncilsServies councilServies, ICouncilMembersServies councilMembersServies, IHubContext<NotificationHub> hubContext, ApplicationDbContext dbContext, IUserServies userServies, ITypeCouncilServies typecouncilservies)
         {
             _councilServies = councilServies;
             _councilMembersServies = councilMembersServies;
             _hubContext = hubContext;
             _dbContext = dbContext;
+            _userServies = userServies;
+            _typecouncilservies = typecouncilservies;
         }
-        [Authorize]
-        [Authorize(Policy = "RequireAddCouncilPermission")]
+        //[Authorize]
+       // [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost(template: "CreateCouncil")]
         public async Task<IActionResult> createcouncil([FromBody] AddCouncilsDTO DTO)
         {
+            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userEmail = "mariam.20375785@compit.aun.edu.eg";
+            if(userEmail==null)
+            {
+                return BadRequest("Please Login");
+            }
+
+            var user = await _userServies.getuserByEmail(userEmail);
+            if(user==null)
+            {
+                return BadRequest("not found");
+            }
+            var typecounill = await _typecouncilservies.GetUserOfTypeCouncil(user.Id);
+            if(typecounill==null)
+            {
+                return BadRequest("errrrrror");
+            }
             if (ModelState.IsValid)
             {
                 var council = new Councils
@@ -39,7 +61,7 @@ namespace CouncilsManagmentSystem.Controllers
                     Title = DTO.Title,
                     Date = DTO.Date,
                     HallId = DTO.HallId,
-                    TypeCouncilId = DTO.TypeCouncilId
+                    TypeCouncilId = typecounill.Id
                 };
                 var councilres = await _councilServies.AddCouncil(council);
                 return Ok(councilres);
@@ -113,6 +135,24 @@ namespace CouncilsManagmentSystem.Controllers
         [HttpPut(template: "UpdateCouncil")]
         public async Task<IActionResult> updatecouncil(int id,[FromForm] AddCouncilsDTO DTO)
         {
+            var userEmail = "mariam.20375785@compit.aun.edu.eg";
+            if (userEmail == null)
+            {
+                return BadRequest("Please Login");
+            }
+
+            var user1 = await _userServies.getuserByEmail(userEmail);
+            if (user1 == null)
+            {
+                return BadRequest("not found");
+            }
+            var typecounill = await _typecouncilservies.GetUserOfTypeCouncil(user1.Id);
+            if (typecounill == null)
+            {
+                return BadRequest("errrrrror");
+            }
+
+
             var council = await _councilServies.GetCouncilById(id);
             if (council == null)
             {
@@ -120,7 +160,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             council.Title = DTO.Title;
             council.Date = DTO.Date;
-            council.TypeCouncilId = DTO.TypeCouncilId;
+            council.TypeCouncilId=typecounill.Id;
             council.HallId = DTO.HallId;
             var councilres = await _councilServies.UpdateCouncil(council);
             var members = await _councilMembersServies.GetAllIDMembersbyidCouncil(id);

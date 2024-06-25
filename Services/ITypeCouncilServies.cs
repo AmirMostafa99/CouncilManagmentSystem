@@ -10,6 +10,7 @@ namespace CouncilsManagmentSystem.Services
 
         TypeCouncil updateTypeCouncilAsync(TypeCouncil typeCouncil);
         Task<IEnumerable<TypeCouncil>> listtypecouncil();
+        Task<TypeCouncil> GetUserOfTypeCouncil(string iduser);
 
     }
 }

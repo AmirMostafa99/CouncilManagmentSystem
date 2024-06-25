@@ -8,7 +8,7 @@ namespace CouncilsManagmentSystem.DTOs
         public string Title { get; set; }
         public DateTime Date { get; set; }
         public int HallId { get; set; }
-        public int TypeCouncilId { get; set; }
+       
  
     }
 }

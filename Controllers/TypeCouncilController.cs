@@ -26,8 +26,8 @@ namespace CouncilsManagmentSystem.Controllers
             _typeCouncilServies = typeCouncilServies;
         }
 
-        [Authorize]
-        [Authorize(Policy = "RequireCreateTypeCouncilPermission")]
+       // [Authorize]
+       // [Authorize(Policy = "RequireCreateTypeCouncilPermission")]
         [HttpPost(template: "AddTypeCouncil")]
         public async Task<IActionResult> addTypeCouncil([FromBody] AddTypeCouncilsDTO type)
         {

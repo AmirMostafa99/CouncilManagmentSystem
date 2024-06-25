@@ -22,7 +22,7 @@ namespace CouncilsManagmentSystem.Services
 
         public async Task<TypeCouncil> checkuser(TypeCouncil typeCouncil)
         {
-            var user = await _context.typeCouncils.FirstOrDefaultAsync(x => x.Id != typeCouncil.Id && (x.SecretaryCouncilId == typeCouncil.SecretaryCouncilId || x.ChairmanCouncilId == typeCouncil.ChairmanCouncilId));
+            var user = await _context.typeCouncils.FirstOrDefaultAsync(x => x.Id != typeCouncil.Id && (x.SecretaryCouncilId == typeCouncil.SecretaryCouncilId || x.ChairmanCouncilId == typeCouncil.ChairmanCouncilId || x.SecretaryCouncilId == typeCouncil.ChairmanCouncilId || x.ChairmanCouncilId == typeCouncil.SecretaryCouncilId));
             var dep = await _context.typeCouncils.FirstOrDefaultAsync(x => x.DepartmentId == typeCouncil.DepartmentId && x.Id != typeCouncil.Id);
             if (user != null)
             {
@@ -57,6 +57,16 @@ namespace CouncilsManagmentSystem.Services
             return typeCouncil;
         }
 
+        public async Task<TypeCouncil> GetUserOfTypeCouncil(string iduser)
+        {
+            var user = await _context.typeCouncils.FirstOrDefaultAsync(x =>  x.SecretaryCouncilId == iduser || x.ChairmanCouncilId == iduser );
+            if(user == null)
+            {
+                return null;
+            }
+            return user;
+        
+        }
 
         public async Task<IEnumerable<TypeCouncil>> listtypecouncil()
         {

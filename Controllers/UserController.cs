@@ -317,7 +317,6 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-       // [Authorize]
         [Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
         [HttpPost("ActivateEmail")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
@@ -410,7 +409,7 @@ namespace CouncilsManagmentSystem.Controllers
             });
         }
 
-        [Authorize]
+       
         //[AllowAnonymous]
         [HttpPost("ForgetPassword")]
         public async Task<IActionResult> ForgetPassword([FromBody] UserForgetPasswordRequestDto dto)
