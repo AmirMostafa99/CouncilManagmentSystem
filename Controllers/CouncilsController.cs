@@ -32,13 +32,13 @@ namespace CouncilsManagmentSystem.Controllers
             _userServies = userServies;
             _typecouncilservies = typecouncilservies;
         }
-        //[Authorize]
-       // [Authorize(Policy = "RequireAddCouncilPermission")]
+        [Authorize]
+        [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost(template: "CreateCouncil")]
         public async Task<IActionResult> createcouncil([FromBody] AddCouncilsDTO DTO)
         {
-            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userEmail = "mariam.20375785@compit.aun.edu.eg";
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
             if(userEmail==null)
             {
                 return BadRequest("Please Login");
@@ -120,7 +120,7 @@ namespace CouncilsManagmentSystem.Controllers
         [HttpGet(template: "GetCouncilBydate")]
         public async Task<IActionResult> getCouncilbydate(DateTime date)
         {
-            //if (date.Year < DateTime.MinValue.Year || date.Month < 1 || date.Month > 12 || date.Day < 1 || date.Day > DateTime.DaysInMonth(date.Year, date.Month))
+            
             if (ModelState.IsValid)
             {
                 var councils = await _councilServies.GetCouncilByDate(date);
@@ -130,12 +130,12 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
-       // [Authorize]
-        //[Authorize(Policy = "RequireEditCouncilPermission")]
+        [Authorize]
+        [Authorize(Policy = "RequireEditCouncilPermission")]
         [HttpPut(template: "UpdateCouncil")]
         public async Task<IActionResult> updatecouncil(int id,[FromForm] AddCouncilsDTO DTO)
         {
-            var userEmail = "mariam.20375785@compit.aun.edu.eg";
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userEmail == null)
             {
                 return BadRequest("Please Login");

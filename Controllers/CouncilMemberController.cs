@@ -48,8 +48,8 @@ namespace CouncilsManagmentSystem.Controllers
             _hubContext = hubContext;
         }
 
-        //  [Authorize]
-        // [Authorize(Policy = "RequireAddCouncilPermission")]
+         [Authorize]
+         [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost("AddCouncilMember")]
         public async Task<IActionResult> AddCouncilMember([FromBody] AddCouncilmemberDTO dto)
         {

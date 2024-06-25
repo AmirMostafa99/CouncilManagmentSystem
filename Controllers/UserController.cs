@@ -61,9 +61,9 @@ namespace CouncilsManagmentSystem.Controllers
 
  
 
-       // [Authorize]
+        [Authorize]
        // [Authorize(Roles = "SuperAdmin,SubAdmin")]
-        //[Authorize(Policy = "RequireAddMembersPermission")]
+        [Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
         public async Task<IActionResult> Adduser( AddUserDTO user)
         {
@@ -243,7 +243,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        //[Authorize]
+        [Authorize]
         //update user
         [HttpPut(template: "UpdateUser")]
         public async Task<IActionResult> updateUser(string id ,[FromForm] updateuserDTO user )
