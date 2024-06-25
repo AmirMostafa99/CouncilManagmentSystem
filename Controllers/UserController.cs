@@ -317,7 +317,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        [Authorize]
+       // [Authorize]
         [Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
         [HttpPost("ActivateEmail")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
