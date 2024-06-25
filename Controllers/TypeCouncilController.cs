@@ -29,7 +29,7 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize]
         [Authorize(Policy = "RequireCreateTypeCouncilPermission")]
         [HttpPost(template: "AddTypeCouncil")]
-        public async Task<IActionResult> addTypeCouncil([FromForm] AddTypeCouncilsDTO type)
+        public async Task<IActionResult> addTypeCouncil([FromBody] AddTypeCouncilsDTO type)
         {
 
             if (ModelState.IsValid)

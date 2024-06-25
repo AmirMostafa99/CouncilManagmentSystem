@@ -14,6 +14,7 @@ namespace CouncilsManagmentSystem.Services
         Task<IEnumerable<ApplicationUser>> getAllUserInDep(int id);
         Task<IEnumerable<object>> GetAllNextCouncilsbyidmember(string idmember);
         CouncilMembers updatecouncilmember(CouncilMembers member);
+        Task<IEnumerable<CouncilMembers>> GetAllIDMembersbyidCouncil(int id);
 
     }
 }

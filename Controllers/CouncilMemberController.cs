@@ -1,10 +1,13 @@
 ﻿using CouncilsManagmentSystem.DTOs;
 using CouncilsManagmentSystem.Models;
+using CouncilsManagmentSystem.notfication;
 using CouncilsManagmentSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.IO;
 using System.Security.Claims;
@@ -21,19 +24,28 @@ namespace CouncilsManagmentSystem.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly IConfiguration _configuration;
         private readonly IMailingService _mailingService;
+        private readonly ICouncilsServies _councilServies;
+        private readonly ApplicationDbContext _dbcontext;
+        private readonly IHubContext<NotificationHub> _hubContext;
 
         public CouncilMemberController(
             ICouncilMembersServies councilMemberService,
             IConfiguration configuration,
             IMailingService mailingService,
             IUserServies userService,
-            IWebHostEnvironment environment)
+            IWebHostEnvironment environment,
+            ICouncilsServies councilServies,
+            ApplicationDbContext dbcontext,
+            IHubContext<NotificationHub> hubContext)
         {
             _councilMemberService = councilMemberService;
             _userService = userService;
             _configuration = configuration;
             _mailingService = mailingService;
             _environment = environment;
+            _councilServies = councilServies;
+            _dbcontext = dbcontext;
+            _hubContext = hubContext;
         }
 
         //  [Authorize]
@@ -45,35 +57,70 @@ namespace CouncilsManagmentSystem.Controllers
             {
                 return BadRequest(ModelState);
             }
+
+
+            if (_councilServies == null)
+            {
+                return StatusCode(500, "Council services not initialized.");
+            }
+
+            var council1 = await _councilServies.GetCouncilById(dto.CouncilId);
+            if (council1 == null)
+            {
+                return NotFound("You have an error in your data.");
+            }
+
+
+            if (_userService == null)
+            {
+                return StatusCode(500, "User services not initialized.");
+            }
+
+
+            if (_councilMemberService == null)
+            {
+                return StatusCode(500, "Council member services not initialized.");
+            }
+
+
+            if (_hubContext == null)
+            {
+                return StatusCode(500, "Notification hub context not initialized.");
+            }
+
             foreach (var email in dto.EmailUsers)
             {
                 var user = await _userService.getuserByEmail(email);
+
                 if (user == null)
                 {
                     return NotFound($"User with email {email} not found.");
                 }
-                //string uploadsPath = Path.Combine(_environment.ContentRootPath, "uploadsPDF");
-                //if (!Directory.Exists(uploadsPath))
-                //{
-                //    Directory.CreateDirectory(uploadsPath);
-                //}
-                //string fileName = Path.GetFileName(dto.Pdf.FileName);
-                //string filePath = Path.Combine(uploadsPath, fileName);
-                //var file = "";
-                //using (var stream = new FileStream(filePath, FileMode.Create))
-                //{
-                //    await dto.Pdf.CopyToAsync(stream);
-                //    file = fileName;
-                //}
+
                 var councilMember = new CouncilMembers
                 {
                     CouncilId = dto.CouncilId,
                     MemberId = user.Id
                 };
-                await _councilMemberService.Addmember(councilMember);
-                ///
+
+                try
+                {
+                    await _councilMemberService.Addmember(councilMember);
+                    var hall = await _dbcontext.Halls.FirstOrDefaultAsync(x => x.Id == council1.HallId);
+                    if (hall == null)
+                    {
+                        return NotFound($"You have error in your data ");
+                    }
+                    await _hubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", council1.Title, hall.Name, council1.Date);
+                }
+                catch (Exception ex)
+                {
+
+                    return StatusCode(500, $"An error occurred while adding the council member: {ex.Message}");
+                }
             }
-            return Ok();
+
+            return Ok("Council member(s) added successfully.");
         }
         [Authorize]
         [HttpPut(template: "Confirm attendance")]

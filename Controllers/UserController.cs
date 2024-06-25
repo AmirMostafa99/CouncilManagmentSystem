@@ -106,7 +106,10 @@ namespace CouncilsManagmentSystem.Controllers
         [HttpPost(template: "AddUsersBySheet")]
         public async Task<IActionResult> UploadFiles(IFormFile file)
         {
-          
+            if (!file.FileName.EndsWith(".xlsx"))
+            {
+                return BadRequest("Invalid file type. Only .xlsx files are allowed.");
+            }
             if (file != null && file.Length > 0)
             {
                 using (var package = new ExcelPackage(file.OpenReadStream()))

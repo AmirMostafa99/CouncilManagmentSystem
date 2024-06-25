@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
+using CouncilsManagmentSystem.notfication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +32,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 
 // Configure CORS for both React and Flutter development environments
 builder.Services.AddCors();
+builder.Services.AddSignalR();
 
 builder.Services.AddTransient<ICollageServies, CollageServies>();
 builder.Services.AddTransient<IDepartmentServies, DepartmentServies>();
@@ -174,6 +176,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<NotificationHub>("/Notfication");
 
 var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();
 using var scope = scopeFactory.CreateScope();

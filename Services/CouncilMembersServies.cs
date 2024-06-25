@@ -157,5 +157,18 @@ namespace CouncilsManagmentSystem.Services
 
             return member;
         }
+
+        public async Task<IEnumerable<CouncilMembers>> GetAllIDMembersbyidCouncil(int id)
+        {
+            var council = await _councilsServies.GetCouncilById(id);
+            if (council == null)
+            {
+                return null;
+            }
+            var users = await _context.CouncilMembers
+                .Where(x => x.CouncilId == id)
+                .ToListAsync();
+            return users;
+        }
     }
 }
