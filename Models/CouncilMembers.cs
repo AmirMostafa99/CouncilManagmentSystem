@@ -24,5 +24,6 @@ namespace CouncilsManagmentSystem.Models
 
         [ForeignKey("MemberId")]
         public ApplicationUser ApplicationUser { get; set; }
+        public List<Notifications> Notifications { get; set; }
     }
 }

@@ -22,8 +22,9 @@ namespace CouncilsManagmentSystem.Controllers
         private readonly ApplicationDbContext _dbContext;
         private readonly IUserServies _userServies;
         private readonly ITypeCouncilServies _typecouncilservies;
+        private readonly INotificationServies _notificationServies;
 
-        public CouncilsController(ICouncilsServies councilServies, ICouncilMembersServies councilMembersServies, IHubContext<NotificationHub> hubContext, ApplicationDbContext dbContext, IUserServies userServies, ITypeCouncilServies typecouncilservies)
+        public CouncilsController(ICouncilsServies councilServies, ICouncilMembersServies councilMembersServies, IHubContext<NotificationHub> hubContext, ApplicationDbContext dbContext, IUserServies userServies, ITypeCouncilServies typecouncilservies, INotificationServies notificationServies)
         {
             _councilServies = councilServies;
             _councilMembersServies = councilMembersServies;
@@ -31,6 +32,7 @@ namespace CouncilsManagmentSystem.Controllers
             _dbContext = dbContext;
             _userServies = userServies;
             _typecouncilservies = typecouncilservies;
+            _notificationServies = notificationServies;
         }
         [Authorize]
         [Authorize(Policy = "RequireAddCouncilPermission")]
@@ -130,12 +132,13 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
-        [Authorize]
-        [Authorize(Policy = "RequireEditCouncilPermission")]
+       // [Authorize]
+        //[Authorize(Policy = "RequireEditCouncilPermission")]
         [HttpPut(template: "UpdateCouncil")]
         public async Task<IActionResult> updatecouncil(int id,[FromForm] AddCouncilsDTO DTO)
         {
-            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            // var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userEmail = "Mariam.20375785@compit.aun.edu.eg";
             if (userEmail == null)
             {
                 return BadRequest("Please Login");
@@ -163,10 +166,12 @@ namespace CouncilsManagmentSystem.Controllers
             council.TypeCouncilId=typecounill.Id;
             council.HallId = DTO.HallId;
             var councilres = await _councilServies.UpdateCouncil(council);
+            
+            
             var members = await _councilMembersServies.GetAllIDMembersbyidCouncil(id);
-            if (members == null)
+            if(members==null)
             {
-                return Ok(councilres);
+                return Ok();
             }
             var hall = await _dbContext.Halls.FirstOrDefaultAsync(x => x.Id == council.HallId);
             if (hall == null)
@@ -177,7 +182,15 @@ namespace CouncilsManagmentSystem.Controllers
             {
                 if (user.IsAttending == true)
                 {
-                    await _hubContext.Clients.User(user.MemberId).SendAsync("ReceiveNotification", council.Title, hall.Name, council.Date);
+                    var not = new Notifications
+                    {
+                        CouncilId = council.Id,
+                        MemberId = user.MemberId,
+                        IsSeen = false,
+
+                    };
+                    await _notificationServies.AddNotifcation(not);
+                    await _hubContext.Clients.User(user.MemberId.ToString()).SendAsync("ReceiveNotification", not);
                 }
             }
             return Ok(councilres);

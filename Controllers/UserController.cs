@@ -811,6 +811,13 @@ namespace CouncilsManagmentSystem.Controllers
 
             return Ok(user1 );
         }
+        [Authorize]
+        [HttpGet(template:"GetUserById")]
+        public async Task<IActionResult> getuserbyid(string id)
+        {
+            var user=await _userServies.getuserByid(id);
+            return Ok(user);
+        }
 
         private string GeneratJwtToken(ApplicationUser user)
         {

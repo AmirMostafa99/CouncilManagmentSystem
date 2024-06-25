@@ -100,12 +100,11 @@ namespace CouncilsManagmentSystem.Services
             DateTime now = DateTime.Now;
             if (council.Date > now)
             {
-                await _context.AddAsync(council);
+                 _context.Update(council);
                 await _context.SaveChangesAsync();
                 return "success";
             }
-            _context.Update(council);
-            await _context.SaveChangesAsync();
+           
             return "success of update";
         }
     }

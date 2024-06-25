@@ -21,6 +21,7 @@ namespace CouncilsManagmentSystem.Models
         public DbSet<Topic> topics { get; set; }
         public DbSet<CouncilMembers> CouncilMembers { get; set; }
         public DbSet<Permissionss> permissionss { get; set; }
+        public DbSet<Notifications> Notifications { get; set; }
 
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

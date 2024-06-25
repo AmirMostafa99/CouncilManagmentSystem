@@ -68,7 +68,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(types);
 
         }
-
+        [Authorize]
         [HttpGet(template: "Get type by id")]
         public async Task<IActionResult> getTypeById(int id)
         {

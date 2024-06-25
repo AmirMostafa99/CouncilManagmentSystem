@@ -61,6 +61,7 @@ builder.Services.AddTransient<ITypeCouncilServies, TypeCouncilServies>();
 builder.Services.AddTransient<ICouncilsServies, CouncilsServies>();
 builder.Services.AddTransient<ICouncilMembersServies, CouncilMembersServies>();
 builder.Services.AddTransient<IPermissionsServies, PermissionsServies>();
+builder.Services.AddTransient<INotificationServies, NotificationServies>();
 
 // Configure authorization policies
 builder.Services.AddAuthorization(options =>

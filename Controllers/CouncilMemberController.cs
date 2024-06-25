@@ -27,6 +27,7 @@ namespace CouncilsManagmentSystem.Controllers
         private readonly ICouncilsServies _councilServies;
         private readonly ApplicationDbContext _dbcontext;
         private readonly IHubContext<NotificationHub> _hubContext;
+        private readonly INotificationServies _notificationServies;
 
         public CouncilMemberController(
             ICouncilMembersServies councilMemberService,
@@ -36,7 +37,8 @@ namespace CouncilsManagmentSystem.Controllers
             IWebHostEnvironment environment,
             ICouncilsServies councilServies,
             ApplicationDbContext dbcontext,
-            IHubContext<NotificationHub> hubContext)
+            IHubContext<NotificationHub> hubContext,
+            INotificationServies notificationServies)
         {
             _councilMemberService = councilMemberService;
             _userService = userService;
@@ -46,10 +48,11 @@ namespace CouncilsManagmentSystem.Controllers
             _councilServies = councilServies;
             _dbcontext = dbcontext;
             _hubContext = hubContext;
+            _notificationServies = notificationServies;
         }
 
-         [Authorize]
-         [Authorize(Policy = "RequireAddCouncilPermission")]
+       // [Authorize]
+        // [Authorize(Policy = "RequireAddCouncilPermission")]
         [HttpPost("AddCouncilMember")]
         public async Task<IActionResult> AddCouncilMember([FromBody] AddCouncilmemberDTO dto)
         {
@@ -111,7 +114,18 @@ namespace CouncilsManagmentSystem.Controllers
                     {
                         return NotFound($"You have error in your data ");
                     }
-                    await _hubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", council1.Title, hall.Name, council1.Date);
+                    var not = new Notifications
+                    {
+                        CouncilId=council1.Id,
+                        MemberId=user.Id,
+                        IsSeen = false,
+
+                    };
+                     await _notificationServies.AddNotifcation(not);
+                    await _hubContext.Clients.User(user.Id.ToString()).SendAsync("ReceiveNotification", not);
+                   
+                    
+                   
                 }
                 catch (Exception ex)
                 {

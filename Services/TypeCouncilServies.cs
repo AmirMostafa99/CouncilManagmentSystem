@@ -1,4 +1,5 @@
 ﻿using CouncilsManagmentSystem.Models;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
 namespace CouncilsManagmentSystem.Services
 {
@@ -34,7 +35,7 @@ namespace CouncilsManagmentSystem.Services
             }
             return null;
         }
-
+        
         public async Task<TypeCouncil> GetCouncilById(int id)
         {
             var typeCouncil = await _context.typeCouncils
