@@ -70,6 +70,32 @@ namespace CouncilsManagmentSystem.Services
             return council;
         }
 
+        public async Task<IEnumerable<Councils>> GetCouncilSbyDate(DateTime date)
+        {
+            if (date.Date > DateTime.Now.Date)
+            {
+                var startDate = DateTime.Now.Date;
+                var endDate = date.Date;
+
+                var councils = await _context.Councils
+                    .Where(x => x.Date.Date >= startDate && x.Date.Date <= endDate)
+                    .ToListAsync();
+                return councils;
+
+            }
+            else
+            {
+                var endDate = DateTime.Now.Date;
+                var startDate = date.Date;
+
+                var councils = await _context.Councils
+                   .Where(x => x.Date.Date >= startDate && x.Date.Date <= endDate)
+                   .ToListAsync();
+                return councils;
+            }
+
+        }
+
         public async Task<IEnumerable<Councils>> GetCouncilSbyIDhalls(int Idhall)
         {
             var council = await _context.Councils.Where(x => x.HallId==Idhall).ToListAsync();
@@ -105,7 +131,7 @@ namespace CouncilsManagmentSystem.Services
                 return "success";
             }
            
-            return "success of update";
+            return "Please check Date";
         }
     }
 }
