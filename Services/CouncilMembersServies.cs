@@ -1,5 +1,6 @@
 ﻿using CouncilsManagmentSystem.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Cryptography.Xml;
 using System.Xml.Linq;
 
 namespace CouncilsManagmentSystem.Services
@@ -169,6 +170,23 @@ namespace CouncilsManagmentSystem.Services
                 .Where(x => x.CouncilId == id)
                 .ToListAsync();
             return users;
+        }
+
+        public async Task<IEnumerable<object>> GetAllCouncilMemberIsNotAtt( int idcouncil)
+        {
+             var mem = await _context.CouncilMembers
+            .Where( x => x.IsAttending == false  && x.CouncilId==idcouncil)
+            .Include(a => a.ApplicationUser )
+            .Select(a => new
+            {
+                UserName = a.ApplicationUser.FullName,
+                Email = a.ApplicationUser.Email,
+                Reason = a.ReasonNonAttendance
+                
+            }).ToListAsync();
+
+            return mem;
+
         }
     }
 }

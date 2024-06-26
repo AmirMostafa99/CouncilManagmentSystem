@@ -248,5 +248,18 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
+       // [Authorize]
+        [HttpGet(template: "GetAllReasonsForNonAttendance")]
+        public async Task<IActionResult> GetAllReasonsForNonAttendance(int councilId)
+        {
+            var council=await _councilServies.GetCouncilById(councilId);
+            if(council==null)
+            {
+                return NotFound("This council Not Found");
+            }
+            var reasons = await _councilMemberService.GetAllCouncilMemberIsNotAtt(councilId);
+            return Ok(reasons);
+        }
+
     }
 }

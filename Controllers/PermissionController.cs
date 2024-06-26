@@ -75,7 +75,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
-
+        [Authorize]
         [HttpGet(template:"GetPermissionsUser")]
         public async Task<IActionResult> getpermissionuser(string email)
         {
