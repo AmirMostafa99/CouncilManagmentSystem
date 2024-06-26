@@ -1,36 +1,102 @@
 ﻿using CouncilsManagmentSystem.Contants;
 using CouncilsManagmentSystem.Models;
+using CouncilsManagmentSystem.Services;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CouncilsManagmentSystem.Seeds
 {
     public static class DefaultUser
     {
+        private static readonly IPermissionsServies permissionsServies;
+        private static readonly ICollageServies collageServies;
+        private static readonly IDepartmentServies departmentServies;
+        private static readonly ApplicationDbContext dbContext;
 
-        public static async Task SeedBasicUserAsync(UserManager<ApplicationUser> userManager)
+
+        //public static async Task SeedBasicUserAsync(UserManager<ApplicationUser> userManager)
+        //{
+
+        public static async Task SeedBasicUserAsync(UserManager<ApplicationUser> userManager, ApplicationDbContext dbContext)
         {
-            var defaultUser = new ApplicationUser
+            using (var context = dbContext ?? new ApplicationDbContext())
             {
-                UserName = "Mohamed",
-                Email = "Mohamed.20375783@compit.aun.edu.eg",
-                EmailConfirmed = true,
-                IsVerified = true
+                var collage = new Collage { Name = "Fci" };
+                var coll = await dbContext.collages.FirstOrDefaultAsync(x => x.Name == "Fci");
+                if (coll == null)
+                {
+                    await context.AddAsync(collage);
+                    await context.SaveChangesAsync();
 
-        };
 
-            var user = await userManager.FindByEmailAsync(defaultUser.Email);
 
-            if (user == null)
-            {
-                await userManager.CreateAsync(defaultUser, "P@ss1234");
-                await userManager.AddToRoleAsync(defaultUser, Roles.BasicUser.ToString());
-                await userManager.UpdateAsync(user);
+
+                    var department = new Department { collage_id = collage.Id, name = "Is" };
+                    var dep = await dbContext.departments.FirstOrDefaultAsync(x => x.name == "Is");
+                    if (dep == null)
+                    {
+                        await context.AddAsync(department);
+                        await context.SaveChangesAsync();
+
+                    }
+
+
+
+                    var defaultUser = new ApplicationUser
+                    {
+                        FullName = "Mohamed",
+                        UserName = "Mohamed",
+                        Email = "Mohamed.20375783@compit.aun.edu.eg",
+                        EmailConfirmed = true,
+                        IsVerified = true,
+                        DepartmentId = department.id
+
+                    };
+
+
+                    var user = await userManager.FindByEmailAsync(defaultUser.Email);
+
+
+                    if (user == null)
+                    {
+                        await userManager.CreateAsync(defaultUser, "P@ss1234");
+                        await dbContext.SaveChangesAsync();
+                        //await userManager.AddToRoleAsync(defaultUser, Roles.BasicUser.ToString());
+                       // await userManager.UpdateAsync(user);
+                    }
+
+                    var permissions = new Permissionss
+                    {
+                        userId = defaultUser.Id,
+                        AddCouncil = true,
+                        EditCouncil = true,
+                        CreateTypeCouncil = true,
+                        EditTypeCouncil = true,
+                        AddMembersByExcil = true,
+                        AddMembers = true,
+                        AddTopic = true,
+                        Arrange = true,
+                        AddResult = true,
+                        AddDepartment = true,
+                        AddCollage = true,
+                        Updatepermission = true,
+                        DeactiveUser = true,
+                        UpdateUser = true,
+                        AddHall = true
+
+                    };
+                    await dbContext.AddAsync(permissions);
+                    await dbContext.SaveChangesAsync();
+
+                }
+                
+
             }
 
         }
 
-        public static async Task SeedSuperAdminUserAsync(UserManager <ApplicationUser> userManager, RoleManager<IdentityRole> roleManger)
+        public static async Task SeedSuperAdminUserAsync(UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManger, ApplicationDbContext dbContext)
         {
             var defaultUser = new ApplicationUser
             {
@@ -49,7 +115,7 @@ namespace CouncilsManagmentSystem.Seeds
                 await userManager.AddToRolesAsync(defaultUser, new List<string> { Roles.BasicUser.ToString(), Roles.SubAdmin.ToString(), Roles.SuperAdmin.ToString(), Roles.Secretary.ToString(), Roles.ChairmanOfTheBoard.ToString() });
                 await userManager.UpdateAsync(user);
             }
-           await roleManger.SeedClaimsForSuperUser();  
+            await roleManger.SeedClaimsForSuperUser();
         }
 
         private static async Task SeedClaimsForSuperUser(this RoleManager<IdentityRole> roleManager)
@@ -71,3 +137,4 @@ namespace CouncilsManagmentSystem.Seeds
 
     }
 }
+

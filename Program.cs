@@ -210,6 +210,30 @@ var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityR
 var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
 
 // Seed data and configure logging
+//using (var scope2 = app.Services.CreateScope())
+//{
+//    var services = scope2.ServiceProvider;
+//    var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+//    var logger = loggerFactory.CreateLogger("app");
+
+//    try
+//    {
+//        var usermanager = services.GetRequiredService<UserManager<ApplicationUser>>();
+//        var rolemanager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+//        await DefaultRoles.SeedAsync(rolemanager);
+//        await DefaultUser.SeedBasicUserAsync(usermanager);
+//        await DefaultUser.SeedSuperAdminUserAsync(usermanager, rolemanager);
+
+//        logger.LogInformation("Data seeded");
+//        logger.LogInformation("Application Started");
+//    }
+//    catch (Exception ex)
+//    {
+//        logger.LogWarning(ex, "An error occurred while seeding data");
+//    }
+//}
+
 using (var scope2 = app.Services.CreateScope())
 {
     var services = scope2.ServiceProvider;
@@ -218,12 +242,13 @@ using (var scope2 = app.Services.CreateScope())
 
     try
     {
+        var dbContext = services.GetRequiredService<ApplicationDbContext>();
         var usermanager = services.GetRequiredService<UserManager<ApplicationUser>>();
         var rolemanager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
         await DefaultRoles.SeedAsync(rolemanager);
-        await DefaultUser.SeedBasicUserAsync(usermanager);
-        await DefaultUser.SeedSuperAdminUserAsync(usermanager, rolemanager);
+        await DefaultUser.SeedBasicUserAsync(usermanager, dbContext);
+        await DefaultUser.SeedSuperAdminUserAsync(usermanager, rolemanager, dbContext);
 
         logger.LogInformation("Data seeded");
         logger.LogInformation("Application Started");
@@ -233,5 +258,4 @@ using (var scope2 = app.Services.CreateScope())
         logger.LogWarning(ex, "An error occurred while seeding data");
     }
 }
-
 app.Run();

@@ -883,12 +883,12 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-        //[Authorize]
+        [Authorize]
         [HttpGet(template:"GetImage")]
         public async Task<IActionResult> GetImage()
         {
-            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userEmail = "Mariam.20375785@compit.aun.edu.eg";
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+           
             var user = await _userServies.getuserByEmail(userEmail);
             var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", user.img);
 
