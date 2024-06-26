@@ -13,7 +13,7 @@ namespace CouncilsManagmentSystem.DTOs
 
         public string? administrative_degree { get; set; }
 
-        [AllowedExtensions( ".jpg")]
+       
         public IFormFile img { get; set; }
 
 

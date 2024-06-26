@@ -191,6 +191,10 @@ namespace CouncilsManagmentSystem.Controllers
                             {
                                 await _userServies.CreateUserAsync(user);
                             }
+                            else
+                            {
+                                return BadRequest("Please check the Date ");
+                            }
                             
 
                         }
@@ -243,7 +247,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        [Authorize]
+        //[Authorize]
         //update user
         [HttpPut(template: "UpdateUser")]
         public async Task<IActionResult> updateUser(string id ,[FromForm] updateuserDTO user )
@@ -284,6 +288,19 @@ namespace CouncilsManagmentSystem.Controllers
 
                 if (user.img != null)
                 {
+                    string fileExtension = Path.GetExtension(user.img.FileName).ToLowerInvariant();
+
+                   
+                    //chech 
+                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                    
+                    if (!allowedExtensions.Contains(fileExtension))
+                    {
+                        return BadRequest("Invalid file extension.");
+                    }
+
+
+
                     path = Path.Combine(path, user.img.FileName);
 
                     using (var stream = new FileStream(path, FileMode.Create))
@@ -305,8 +322,23 @@ namespace CouncilsManagmentSystem.Controllers
                 search.administrative_degree = user.administrative_degree;
                 search.functional_characteristic = user.functional_characteristic;
                 search.academic_degree = user.academic_degree;
-                _userServies.Updateusert(search);
-                return Ok(search);
+                DateTime now = DateTime.Now;
+                DateTime startDate = new DateTime(1970, 1, 1);
+                //DateTime endDate = new DateTime(2004, 1, 1);
+                DateTime endDate = DateTime.Now.AddYears(-18);
+
+                if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
+                {
+                    _userServies.Updateusert(search);
+                    return Ok(search);
+                }
+                else
+                {
+                    return BadRequest("Please check the Date ");
+                }
+
+
+               
 
             }
             return BadRequest("you have wrong in your data. ");
@@ -847,6 +879,34 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
+
+
+
+
+
+        [HttpGet("{imageName}")]
+        public IActionResult GetImage(string imageName)
+        {
+            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", imageName);
+
+            if (!System.IO.File.Exists(imagePath))
+            {
+                return NotFound();
+            }
+
+            var image = System.IO.File.OpenRead(imagePath);
+            string contentType = "image/jpeg";
+            if (imageName.EndsWith(".png"))
+            {
+                contentType = "image/png";
+            }
+            else if (imageName.EndsWith(".gif"))
+            {
+                contentType = "image/gif";
+            }
+
+            return File(image, contentType);
+        }
 
     }
 }

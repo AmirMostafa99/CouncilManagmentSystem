@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel;
+using CouncilsManagmentSystem.Attributes;
+
 namespace CouncilsManagmentSystem.DTOs
 {
     public class AddUserDTO
@@ -14,6 +16,7 @@ namespace CouncilsManagmentSystem.DTOs
         public string? administrative_degree { get; set; }
 
         [DefaultValue("defaultimage.png")]
+        
         public string? img { get; set; }
 
 
