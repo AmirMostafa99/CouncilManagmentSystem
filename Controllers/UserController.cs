@@ -92,7 +92,7 @@ namespace CouncilsManagmentSystem.Controllers
 
                 DateTime now = DateTime.Now;
                 DateTime startDate = new DateTime(1970, 1, 1);
-                DateTime endDate = new DateTime(2004, 1, 1);
+                DateTime endDate = DateTime.Now.AddYears(-18);
 
                 if (adduser.Birthday < now && adduser.Birthday > startDate && adduser.Birthday < endDate)
                 {
@@ -100,7 +100,11 @@ namespace CouncilsManagmentSystem.Controllers
                     await _context.SaveChangesAsync();
                     return Ok("User successfully added");
                 }
-               
+                else
+                {
+                    return BadRequest("Please check the Date ");
+                }
+
             }
 
             return BadRequest("There is an error in your data.");
@@ -185,7 +189,7 @@ namespace CouncilsManagmentSystem.Controllers
                             // Save changes to the database
                             DateTime now = DateTime.Now;
                             DateTime startDate = new DateTime(1970, 1, 1);
-                            DateTime endDate = new DateTime(2004, 1, 1);
+                            DateTime endDate = DateTime.Now.AddYears(-18);
 
                             if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
                             {
@@ -247,13 +251,13 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-        //[Authorize]
+        [Authorize]
         //update user
         [HttpPut(template: "UpdateUser")]
         public async Task<IActionResult> updateUser(string id ,[FromForm] updateuserDTO user )
         {
-            var userEmail = "mariam.20375785@compit.aun.edu.eg";
-           // var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (userEmail == null)
             {
                 return Unauthorized("User is not authenticated.");
@@ -324,7 +328,7 @@ namespace CouncilsManagmentSystem.Controllers
                 search.academic_degree = user.academic_degree;
                 DateTime now = DateTime.Now;
                 DateTime startDate = new DateTime(1970, 1, 1);
-                //DateTime endDate = new DateTime(2004, 1, 1);
+        
                 DateTime endDate = DateTime.Now.AddYears(-18);
 
                 if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
@@ -832,11 +836,7 @@ namespace CouncilsManagmentSystem.Controllers
         [HttpGet(template: "Profile")]
         public async Task<IActionResult> Profile()
         {
-            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-
-            
-            
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;  
             var user = await _userServies.getuserByEmail(userEmail);
             var user1 = await _userServies.getuserObjectByid(user.Id);
 
@@ -883,11 +883,14 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-
-        [HttpGet("{imageName}")]
-        public IActionResult GetImage(string imageName)
+        //[Authorize]
+        [HttpGet(template:"GetImage")]
+        public async Task<IActionResult> GetImage()
         {
-            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", imageName);
+            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userEmail = "Mariam.20375785@compit.aun.edu.eg";
+            var user = await _userServies.getuserByEmail(userEmail);
+            var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "images", user.img);
 
             if (!System.IO.File.Exists(imagePath))
             {
@@ -896,13 +899,21 @@ namespace CouncilsManagmentSystem.Controllers
 
             var image = System.IO.File.OpenRead(imagePath);
             string contentType = "image/jpeg";
-            if (imageName.EndsWith(".png"))
+            if (user.img.EndsWith(".png"))
             {
                 contentType = "image/png";
             }
-            else if (imageName.EndsWith(".gif"))
+            else if (user.img.EndsWith(".gif"))
             {
                 contentType = "image/gif";
+            }
+            else if (user.img.EndsWith(".jpg"))
+            {
+                contentType = "image/jpg";
+            }
+            else if (user.img.EndsWith(".jpeg"))
+            {
+                contentType = "image/jpeg";
             }
 
             return File(image, contentType);
