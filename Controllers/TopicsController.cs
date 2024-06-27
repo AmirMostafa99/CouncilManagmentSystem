@@ -47,9 +47,7 @@ namespace CouncilsManagmentSystem.Controllers
             var topic = new Topic
             {
                 Title = topicDto.Title,
-                IsDiscussed = topicDto.IsDiscussed,
                 Notes = topicDto.Notes,
-                Result = topicDto.Result,
                 DateTimeCreated = DateTime.Now,
                 CouncilId = topicDto.CouncilId,
                 Type = topicDto.Type

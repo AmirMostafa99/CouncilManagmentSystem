@@ -9,13 +9,13 @@ namespace CouncilsManagmentSystem.Models
     public class Topic
     {
         public int Id { get; set; }
-        public string Title { get; set; }
-        public string Type { get; set; }
+        public string? Title { get; set; }
+        public string? Type { get; set; }
         [DefaultValue(false)]
-        public bool IsDiscussed { get; set; }
-        public string Notes { get; set; }
+        public bool ?IsDiscussed { get; set; }
+        public string? Notes { get; set; }
         [DefaultValue("Not yet")]
-        public string Result { get; set; } 
+        public string? Result { get; set; } 
         public DateTime DateTimeCreated { get; set; }
 
         [ForeignKey("CouncilId")]

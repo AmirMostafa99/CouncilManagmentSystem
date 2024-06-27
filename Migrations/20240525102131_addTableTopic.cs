@@ -33,7 +33,7 @@ namespace CouncilsManagmentSystem.Migrations
                     Type = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     IsDiscussed = table.Column<bool>(type: "bit", nullable: false),
                     Notes = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Result = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Result = table.Column<string>(type: "nvarchar(max)", nullable: true),
                     DateTimeCreated = table.Column<DateTime>(type: "datetime2", nullable: false),
                     CouncilId = table.Column<int>(type: "int", nullable: false),
                     Attachment = table.Column<string>(type: "nvarchar(max)", nullable: true)

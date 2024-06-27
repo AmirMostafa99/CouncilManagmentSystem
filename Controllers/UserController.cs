@@ -61,9 +61,8 @@ namespace CouncilsManagmentSystem.Controllers
 
  
 
-        [Authorize]
-       // [Authorize(Roles = "SuperAdmin,SubAdmin")]
-        [Authorize(Policy = "RequireAddMembersPermission")]
+       // [Authorize]
+        //[Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
         public async Task<IActionResult> Adduser( AddUserDTO user)
         {
@@ -84,9 +83,8 @@ namespace CouncilsManagmentSystem.Controllers
 
                 };
 
-                //var password = Guid.NewGuid().ToString("N").Substring(0, 8);
+                
                 adduser.img = "defaultimage.png";
-                //adduser.PasswordHash = password;
                 adduser.IsVerified = false;
 
 
@@ -114,7 +112,6 @@ namespace CouncilsManagmentSystem.Controllers
 
 
         [Authorize]
-
         [Authorize(Policy = "RequireAddMembersByExcelPermission")]
 
         [HttpPost(template: "AddUsersBySheet")]
@@ -371,6 +368,35 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
+        [Authorize]
+        [Authorize(Policy = "RequireDeactiveUserPermission")]
+        [HttpPut("DeactivateUser")]
+        public async Task<IActionResult> DeactivateUser([FromBody] DeactivateUserRequestDto dto)
+        {
+            var user = await _usermanager.FindByEmailAsync(dto.Email);
+            if (user == null)
+            {
+                return NotFound("Invalid Email");
+            }
+
+            user.IsVerified = false;
+
+            var result = await _usermanager.UpdateAsync(user);
+            if (!result.Succeeded)
+            {
+                return BadRequest(result.Errors);
+            }
+
+            return Ok(new AuthenticationResault()
+            {
+                Errors = new List<string>()
+                {
+                      "The User Deactivated"
+                },
+                Result = true,
+
+            });
+        }
         [Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
         [HttpPost("ActivateEmail")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
@@ -378,7 +404,7 @@ namespace CouncilsManagmentSystem.Controllers
             if (ModelState.IsValid)
             {
                 var existingUser = await _usermanager.FindByEmailAsync(dto.Email);
-                if (existingUser != null)
+                if (existingUser != null )
                 {
                     // Generate a random password
                     var password = Guid.NewGuid().ToString("N").Substring(0, 8);
@@ -394,6 +420,10 @@ namespace CouncilsManagmentSystem.Controllers
                     await _usermanager.UpdateAsync(existingUser);
 
                     return Ok("Password successfully generated and sent via email.");
+                }
+                else if (!string.IsNullOrEmpty(existingUser.PasswordHash))
+                {
+                    return Ok("you activate your email before");
                 }
 
                 return BadRequest(new AuthenticationResault()
@@ -463,8 +493,78 @@ namespace CouncilsManagmentSystem.Controllers
             });
         }
 
-       
-        //[AllowAnonymous]
+        [Authorize]
+        [HttpPost("ChangePassword")]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid payload.");
+            }
+
+            if (dto.NewPassword != dto.ConfirmNewPassword)
+            {
+                return BadRequest("The new password and confirmation password do not match.");
+            }
+
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken validatedToken;
+            var validationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = false,
+                ValidateAudience = false,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
+                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
+            };
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
+                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
+
+                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+                if (existingUser == null)
+                {
+                    return BadRequest("The user does not exist.");
+                }
+
+                var isCorrectOldPassword = await _usermanager.CheckPasswordAsync(existingUser, dto.OldPassword);
+                if (!isCorrectOldPassword)
+                {
+                    return BadRequest("The old password is incorrect.");
+                }
+
+                var resetToken = await _usermanager.GeneratePasswordResetTokenAsync(existingUser);
+                var result = await _usermanager.ResetPasswordAsync(existingUser, resetToken, dto.NewPassword);
+
+                
+                var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
+                var jwrToken = GeneratJwtToken(existingUser);
+                return Ok(new AuthenticationResault()
+                {
+                    Permission = UserPermission,
+                    Token = jwrToken,
+                    Result = true,
+                    Errors = new List<string>()
+                    {
+                        "The new password was added successfully."
+                    },
+                });
+            }
+            catch (SecurityTokenException)
+            {
+                return BadRequest("Invalid token.");
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+            }
+        }
+
+
+        [AllowAnonymous]
         [HttpPost("ForgetPassword")]
         public async Task<IActionResult> ForgetPassword([FromBody] UserForgetPasswordRequestDto dto)
         {
@@ -514,7 +614,6 @@ namespace CouncilsManagmentSystem.Controllers
 
         }
         [Authorize]
-        //[AllowAnonymous]
         [HttpPost("ConfirmOTP")]
         public async Task<IActionResult> ConfirmOTP([FromBody] ConfirmOTPDto dto)
         {
@@ -566,9 +665,9 @@ namespace CouncilsManagmentSystem.Controllers
                     Token = jwrToken,
                     Result = true,
                     Errors = new List<string>()
-            {
-                "OTP successfully Confirmed."
-            },
+                    {
+                        "OTP successfully Confirmed."
+                    },
                 });
             }
             catch (SecurityTokenException)
@@ -580,7 +679,7 @@ namespace CouncilsManagmentSystem.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
             }
         }
-        //[AllowAnonymous]
+        [AllowAnonymous]
         [Authorize]
         [HttpPost("AddNewPassword")]
         public async Task<IActionResult> AddNewPassword([FromBody] AddNewPasswordWithTokenDto dto)
@@ -708,36 +807,6 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-        [Authorize]
-        [Authorize(Policy = "RequireDeactiveUserPermission")]
-        // [Authorize(Roles = "SuperAdmin,SubAdmin")]
-        [HttpPut("DeactivateUser")]
-        public async Task<IActionResult> DeactivateUser([FromBody] DeactivateUserRequestDto dto)
-        {
-            var user = await _usermanager.FindByEmailAsync(dto.Email);
-            if (user == null)
-            {
-                return NotFound("Invalid Email");
-            }
-
-            user.IsVerified = false;
-
-            var result = await _usermanager.UpdateAsync(user);
-            if (!result.Succeeded)
-            {
-                return BadRequest(result.Errors);
-            }
-
-            return Ok(new AuthenticationResault()
-            {
-                Errors = new List<string>()
-                {
-                      "The User Deactivated"
-                },
-                Result = true,
-
-            });
-        }
         [Authorize]
         [Authorize(Policy = "RequireDeactiveUserPermission")]
         [HttpPut("ActivateUserbyAdmin")]

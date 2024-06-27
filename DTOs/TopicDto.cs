@@ -5,9 +5,7 @@ namespace CouncilsManagmentSystem.DTOs
     public class TopicDto
     {
         public string? Title { get; set; }
-        public bool IsDiscussed { get; set; }
         public string? Notes { get; set; }
-        public string? Result { get; set; }
         public string? Type { get; set; }
         public int CouncilId { get; set; }
 
