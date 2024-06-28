@@ -397,15 +397,20 @@ namespace CouncilsManagmentSystem.Controllers
 
             });
         }
-        [Authorize(Roles = "BasicUser,Secretary,ChairmanOfTheBoard")]
+
+        [AllowAnonymous]
         [HttpPost("ActivateEmail")]
         public async Task<IActionResult> VerifyEmail([FromBody] VerifyEmailDto dto)
         {
             if (ModelState.IsValid)
             {
                 var existingUser = await _usermanager.FindByEmailAsync(dto.Email);
-                if (existingUser != null )
+                if (existingUser != null)
                 {
+                    if (existingUser.EmailConfirmed)
+                    {
+                        return Ok("You have already activated your email.");
+                    }
                     // Generate a random password
                     var password = Guid.NewGuid().ToString("N").Substring(0, 8);
 
@@ -416,15 +421,13 @@ namespace CouncilsManagmentSystem.Controllers
 
                     // Save the generated password for the user in the database
                     existingUser.PasswordHash = _usermanager.PasswordHasher.HashPassword(existingUser, password);
-                    existingUser.IsVerified = true;  
+                    existingUser.IsVerified = true;
+                    existingUser.EmailConfirmed = true;
                     await _usermanager.UpdateAsync(existingUser);
 
                     return Ok("Password successfully generated and sent via email.");
                 }
-                else if (!string.IsNullOrEmpty(existingUser.PasswordHash))
-                {
-                    return Ok("you activate your email before");
-                }
+
 
                 return BadRequest(new AuthenticationResault()
                 {
@@ -444,15 +447,15 @@ namespace CouncilsManagmentSystem.Controllers
                 Result = false
             });
         }
-        
+
         [AllowAnonymous]
         [HttpPost("Login")]
         public async Task<IActionResult> Login([FromBody] UserLoginRequestDto dto)
         {
             if (ModelState.IsValid)
             {
-               var existing_user = await _usermanager.FindByEmailAsync(dto.Email);
-                
+                var existing_user = await _usermanager.FindByEmailAsync(dto.Email);
+
                 if (existing_user == null)
                 {
                     return BadRequest("The User Not Exist");
@@ -469,15 +472,17 @@ namespace CouncilsManagmentSystem.Controllers
                     return BadRequest("Invalid Credentials ");
                 }
                 var UserPermission = await _permissionsServies.getObjectpermissionByid(existing_user.Id);
-                var jwrToken = GeneratJwtToken(existing_user);
-               
+                var jwrToken = GenerateJwtToken(existing_user);
+                var storeTokenResult = await _usermanager.SetAuthenticationTokenAsync(existing_user, "Default", "JWT", jwrToken);
+                if (!storeTokenResult.Succeeded)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to store the JWT token.");
+                }
                 return Ok(new AuthenticationResault()
                 {
                     Permission = UserPermission,
                     Token = jwrToken,
                     Result = true
-                                 
-
 
                 });
 
@@ -507,61 +512,42 @@ namespace CouncilsManagmentSystem.Controllers
                 return BadRequest("The new password and confirmation password do not match.");
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken validatedToken;
-            var validationParameters = new TokenValidationParameters
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+            if (existingUser == null)
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
-                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
-            };
-
-            try
-            {
-                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
-                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
-
-                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
-                if (existingUser == null)
-                {
-                    return BadRequest("The user does not exist.");
-                }
-
-                var isCorrectOldPassword = await _usermanager.CheckPasswordAsync(existingUser, dto.OldPassword);
-                if (!isCorrectOldPassword)
-                {
-                    return BadRequest("The old password is incorrect.");
-                }
-
-                var resetToken = await _usermanager.GeneratePasswordResetTokenAsync(existingUser);
-                var result = await _usermanager.ResetPasswordAsync(existingUser, resetToken, dto.NewPassword);
-
-                
-                var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
-                var jwrToken = GeneratJwtToken(existingUser);
-                return Ok(new AuthenticationResault()
-                {
-                    Permission = UserPermission,
-                    Token = jwrToken,
-                    Result = true,
-                    Errors = new List<string>()
-                    {
-                        "The new password was added successfully."
-                    },
-                });
+                return BadRequest("The user does not exist.");
             }
-            catch (SecurityTokenException)
+            var isCorrectOldPassword = await _usermanager.CheckPasswordAsync(existingUser, dto.OldPassword);
+            if (!isCorrectOldPassword)
             {
-                return BadRequest("Invalid token.");
+                return BadRequest("The old password is incorrect.");
             }
-            catch (Exception ex)
+
+            existingUser.PasswordHash = _usermanager.PasswordHasher.HashPassword(existingUser, dto.NewPassword);
+
+            var jwrToken = GenerateJwtToken(existingUser);
+
+            var storeTokenResult = await _usermanager.SetAuthenticationTokenAsync(existingUser, "Default", "JWT", jwrToken);
+            if (!storeTokenResult.Succeeded)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to store the JWT token.");
             }
+            var userPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
+
+            return Ok(new AuthenticationResault()
+            {
+                Permission = userPermission,
+                Token = jwrToken,
+                Result = true,
+                Errors = new List<string>()
+                {
+                    "The new password was added successfully."
+                },
+            });
+
         }
+
 
 
         [AllowAnonymous]
@@ -579,7 +565,7 @@ namespace CouncilsManagmentSystem.Controllers
                 }
                 Random rand = new Random();
                 int otp = rand.Next(100000, 999999);
-      
+
                 var subject = "Council Management System Password Reset Not-replay";
                 var body = $"Dear User,\n\nYou have requested to reset your password for the Council Management System. Please use this OTP to reset your password. Your (OTP) is: {otp}.";
 
@@ -590,15 +576,17 @@ namespace CouncilsManagmentSystem.Controllers
                 await _usermanager.UpdateAsync(existing_user);
 
                 var UserPermission = await _permissionsServies.getObjectpermissionByid(existing_user.Id);
-                var jwrToken = GeneratJwtToken(existing_user);
-
+                var jwrToken = GenerateJwtToken(existing_user);
+                var storeTokenResult = await _usermanager.SetAuthenticationTokenAsync(existing_user, "Default", "JWT", jwrToken);
+                if (!storeTokenResult.Succeeded)
+                {
+                    return StatusCode(StatusCodes.Status500InternalServerError, "Failed to store the JWT token.");
+                }
                 return Ok(new AuthenticationResault()
                 {
                     Permission = UserPermission,
                     Token = jwrToken,
                     Result = true
-
-
 
                 });
 
@@ -613,6 +601,7 @@ namespace CouncilsManagmentSystem.Controllers
             });
 
         }
+
         [Authorize]
         [HttpPost("ConfirmOTP")]
         public async Task<IActionResult> ConfirmOTP([FromBody] ConfirmOTPDto dto)
@@ -622,63 +611,45 @@ namespace CouncilsManagmentSystem.Controllers
                 return BadRequest("Invalid payload.");
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken validatedToken;
-            var validationParameters = new TokenValidationParameters
+
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+            if (existingUser == null)
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
-                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
-            };
-
-            try
-            {
-
-                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
-                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
-
-
-                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
-                if (existingUser == null)
-                {
-                    return BadRequest("The user does not exist.");
-                }
-
-
-                if (existingUser.OTP != dto.OTP)
-                {
-                    return BadRequest("Invalid OTP.");
-                }
-
-
-                existingUser.OTP = null;
-                
-                await _usermanager.UpdateAsync(existingUser);
-                var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
-                var jwrToken = GeneratJwtToken(existingUser);
-                return Ok(new AuthenticationResault()
-                {
-                    Permission = UserPermission,
-                    Token = jwrToken,
-                    Result = true,
-                    Errors = new List<string>()
-                    {
-                        "OTP successfully Confirmed."
-                    },
-                });
+                return BadRequest("The user does not exist.");
             }
-            catch (SecurityTokenException)
+
+            if (existingUser.OTP != dto.OTP)
             {
-                return BadRequest("Invalid token.");
+                return BadRequest("Invalid OTP.");
             }
-            catch (Exception ex)
+
+            existingUser.OTP = null;
+
+
+            var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
+            var jwrToken = GenerateJwtToken(existingUser);
+            var storeTokenResult = await _usermanager.SetAuthenticationTokenAsync(existingUser, "Default", "JWT", jwrToken);
+            if (!storeTokenResult.Succeeded)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to store the JWT token.");
             }
+            await _usermanager.UpdateAsync(existingUser);
+            return Ok(new AuthenticationResault()
+            {
+                Permission = UserPermission,
+                Token = jwrToken,
+                Result = true,
+                Errors = new List<string>()
+                {
+                    "OTP successfully Confirmed."
+                },
+            });
+
         }
+
+
         [AllowAnonymous]
         [Authorize]
         [HttpPost("AddNewPassword")]
@@ -694,118 +665,61 @@ namespace CouncilsManagmentSystem.Controllers
                 return BadRequest("The new password and confirmation password do not match.");
             }
 
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken validatedToken;
-            var validationParameters = new TokenValidationParameters
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+            if (existingUser == null)
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
-                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
-            };
-
-            try
-            {
-
-                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
-                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
-
-
-                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
-                if (existingUser == null)
-                {
-                    return BadRequest("The user does not exist.");
-                }
-
-                var resetToken = await _usermanager.GeneratePasswordResetTokenAsync(existingUser);
-
-                var result = await _usermanager.ResetPasswordAsync(existingUser, resetToken, dto.NewPassword);
-
-                if (!result.Succeeded)
-                {
-                    return BadRequest("Failed to reset the password.");
-                }
-
-                var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
-                var jwrToken = GeneratJwtToken(existingUser);
-                return Ok(new AuthenticationResault()
-                {
-                    Permission = UserPermission,
-                    Token = jwrToken,
-                    Result = true,
-                    Errors = new List<string>()
-                    {
-                        "The new password added successfully."
-                    },
-                });
+                return BadRequest("The user does not exist.");
             }
-            catch (SecurityTokenException)
+
+
+            var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
+            var jwrToken = GenerateJwtToken(existingUser);
+            var storeTokenResult = await _usermanager.SetAuthenticationTokenAsync(existingUser, "Default", "JWT", jwrToken);
+            return Ok(new AuthenticationResault()
             {
-                return BadRequest("Invalid token.");
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
-            }
+                Permission = UserPermission,
+                Token = jwrToken,
+                Result = true,
+                Errors = new List<string>()
+                {
+                    "The new password added successfully."
+                },
+            });
+
         }
 
         [Authorize]
         [HttpPost("Logout")]
-        public async Task<IActionResult> Logout(LogoutDto dto)
+        public async Task<IActionResult> Logout()
         {
 
             if (!ModelState.IsValid)
             {
                 return BadRequest("Invalid payload.");
             }
-            var tokenHandler = new JwtSecurityTokenHandler();
-            SecurityToken validatedToken;
-            var validationParameters = new TokenValidationParameters
+
+
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var existingUser = await _usermanager.FindByEmailAsync(userEmail);
+            if (existingUser == null)
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
-                ValidateIssuerSigningKey = true,
-                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtConfig:Secret"])),
-                ClockSkew = TimeSpan.Zero // Remove delay of token when expire
-            };
-
-            try
-            {
-
-                var principal = tokenHandler.ValidateToken(dto.Token, validationParameters, out validatedToken);
-                var userEmail = principal.FindFirst(ClaimTypes.Email)?.Value;
-
-
-                var existingUser = await _usermanager.FindByEmailAsync(userEmail);
-                if (existingUser == null)
-                {
-                    return BadRequest("The user does not exist.");
-                }
-
-                await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
-                 return Ok(new AuthenticationResault()
-                  {
-                    Result = true,
-                    Errors = new List<string>()
-                    {
-                          "Logout successful."
-                    }
-                  });
+                return BadRequest("The user does not exist.");
             }
-            catch (SecurityTokenException)
+
+            await HttpContext.SignOutAsync(IdentityConstants.ApplicationScheme);
+            return Ok(new AuthenticationResault()
             {
-                return BadRequest("Invalid token.");
-            }
-            catch (Exception ex)
+                Result = true,
+                Errors = new List<string>()
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, $"An error occurred: {ex.Message}");
+                    "Logout successful."
             }
+            });
+
         }
-
-
 
         [Authorize]
         [Authorize(Policy = "RequireDeactiveUserPermission")]
@@ -920,32 +834,32 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(user);
         }
 
-        private string GeneratJwtToken(ApplicationUser user)
+        private string GenerateJwtToken(ApplicationUser user)
         {
-            var JwtTokenHandler = new JwtSecurityTokenHandler();
+            var jwtTokenHandler = new JwtSecurityTokenHandler();
             var key = Encoding.UTF8.GetBytes(_configuration.GetSection("JwtConfig:Secret").Value);
 
-            // Token descriptor
-            var TokenDescriptor = new SecurityTokenDescriptor()
+            var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new[]
                 {
-                    new Claim("Id", user.Id),
-                    new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-                    new Claim(JwtRegisteredClaimNames.Email, value: user.Email),
-                    new Claim(JwtRegisteredClaimNames.Jti, value: Guid.NewGuid().ToString()),
-                    new Claim(JwtRegisteredClaimNames.Iat, value: DateTime.Now.ToUniversalTime().ToString())
-                }),
-
-
-                Expires = DateTime.Now.AddHours(300),
-                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256)
+            new Claim("Id", user.Id),
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            new Claim(JwtRegisteredClaimNames.Email, user.Email),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new Claim(JwtRegisteredClaimNames.Iat, DateTime.UtcNow.ToString()),
+            new Claim(JwtRegisteredClaimNames.Aud, "http://localhost:3000"), // Audience claim for React frontend
+            new Claim(JwtRegisteredClaimNames.Aud, "http://localhost:5117")  // Audience claim for Flutter  
+        }),
+                Expires = DateTime.UtcNow.AddDays(7),
+                SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature),
+                Issuer = _configuration["JwtConfig:ValidIss"]
             };
 
-            var token = JwtTokenHandler.CreateToken(TokenDescriptor);
-            var jwtToken = JwtTokenHandler.WriteToken(token);
-            return jwtToken;
+            var token = jwtTokenHandler.CreateToken(tokenDescriptor);
+            return jwtTokenHandler.WriteToken(token);
         }
+
 
 
 

@@ -12,8 +12,7 @@ namespace CouncilsManagmentSystem.DTOs
         [Required]
 
         public string ConfirmNewPassword { get; set; }
-        [Required]
+      
 
-        public string Token { get; set; }
     }
 }

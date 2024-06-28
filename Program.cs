@@ -109,7 +109,6 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>()
                 .AddDefaultTokenProviders()
                 .AddDefaultUI();
-
 builder.Services.Configure<JwtConfig>(builder.Configuration.GetSection("JwtConfig"));
 
 builder.Services.AddAuthentication(options =>
@@ -117,18 +116,23 @@ builder.Services.AddAuthentication(options =>
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
-}).AddJwtBearer(jwt =>
+})
+.AddJwtBearer(jwt =>
 {
     var key = Encoding.ASCII.GetBytes(builder.Configuration.GetSection("JwtConfig:Secret").Value);
     jwt.SaveToken = true;
-    jwt.TokenValidationParameters = new TokenValidationParameters()
+    jwt.RequireHttpsMetadata = false;
+    jwt.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuerSigningKey = true,
         IssuerSigningKey = new SymmetricSecurityKey(key),
-        ValidateIssuer = false, // for development; set to true in production
-        ValidateAudience = false, // for development; set to true in production
-        RequireExpirationTime = false, // for development; set to true in production
+        ValidateIssuer = true,
+        ValidIssuer = builder.Configuration.GetSection("JwtConfig:ValidIss").Value,
+        ValidateAudience = true,
+        ValidAudiences = builder.Configuration.GetSection("JwtConfig:ValidAud").Value.Split(','),
+        RequireExpirationTime = true,
         ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero
     };
 });
 
