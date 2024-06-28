@@ -51,7 +51,7 @@ namespace CouncilsManagmentSystem.Controllers
         [Authorize(Policy = "RequireAddCollagePermission")]
         //update collages
         [HttpPut("UpdateCollage{id}")]
-        public async Task<IActionResult> updateCollage(AddCollageDTO dto)
+        public async Task<IActionResult> updateCollage(UpdateCollageDTO dto)
         {
             if (ModelState.IsValid)
             {
