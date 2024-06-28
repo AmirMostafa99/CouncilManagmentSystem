@@ -22,7 +22,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-        [Authorize(Policy = "RequireAddTopicPermission")]
+        //[Authorize(Policy = "RequireAddTopicPermission")]
         [HttpPost(template: "AddTopic")]
         public async Task<IActionResult> AddTopic([FromForm] TopicDto topicDto)
         {
@@ -100,7 +100,7 @@ namespace CouncilsManagmentSystem.Controllers
 
 
         [Authorize]
-        [Authorize(Policy = "RequireEditCouncilPermission")]
+        [Authorize(Policy = "RequireAddResultPermission")]
         [HttpPost("AddResultToTopic")]
         public async Task<IActionResult> AddResultToTopic([FromBody] AddResultToTopicDto addResultToTopicDto)
         {
