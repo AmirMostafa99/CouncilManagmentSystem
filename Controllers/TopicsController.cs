@@ -91,10 +91,22 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-        [HttpGet("GetAllTopics")]
-        public async Task<IActionResult> GetAllTopics()
+        [HttpGet("GetAllTopicsByIdCouncil")]
+        public async Task<IActionResult> GetAllTopicsByIdCouncil([FromBody] CouncilIdDto dto)
         {
-            var topics = await _context.topics.ToListAsync();
+            if (!ModelState.IsValid)
+            {
+                return BadRequest("Invalid payload.");
+            }
+
+            var topics = await _context.topics
+                .Where(t => t.CouncilId == dto.CouncilId)
+                .ToListAsync();
+
+            if (topics == null || !topics.Any())
+            {
+                return NotFound($"No topics found for CouncilId: {dto.CouncilId}");
+            }
             return Ok(topics);
         }
 
