@@ -15,8 +15,8 @@ namespace CouncilsManagmentSystem.Services
           
             _typeCouncilServies = typeCouncilServies;
         }
-
-        public async Task<string> AddCouncil(Councils council)
+            
+        public async Task<object> AddCouncil(Councils council)
         {
             var type = await _typeCouncilServies.GetCouncilById(council.TypeCouncilId);
             if (type == null)
@@ -28,7 +28,9 @@ namespace CouncilsManagmentSystem.Services
             {
                 await _context.AddAsync(council);
                 await _context.SaveChangesAsync();
-                return "success";
+                var re = new Councils { Id = council.Id, Title = council.Title, Date = council.Date , HallId=council.HallId };
+                
+                return re ;
             }
             throw new ApplicationException("Please check Date");
         }

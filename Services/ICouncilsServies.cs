@@ -5,7 +5,7 @@ namespace CouncilsManagmentSystem.Services
     public interface ICouncilsServies
     {
         Task<IEnumerable<Councils>> GetallCouncils();
-        Task<string> AddCouncil(Councils council);
+        Task<object> AddCouncil(Councils council);
         Task<Councils> GetCouncilById(int councilId);
         Task<IEnumerable<Object>> GetAllCouncilsByIdType(int typeId);
         Task<Councils> GetCouncilByDate(DateTime date); 
