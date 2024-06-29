@@ -97,13 +97,14 @@ namespace CouncilsManagmentSystem.Services
 
             var councils = await _context.CouncilMembers
                 .Where(x => x.MemberId == idmember)
-                .Include(a => a.Council)
+                .Include(a => a.Council).ThenInclude(a=>a.Hall)
                 .Select(z => new
                 {
                     id = z.Council.Id,
                     Date = z.Council.Date,
                     CurrentDateTime = now,
-                    Title = z.Council.Title
+                    Title = z.Council.Title,
+                    Hall=z.Council.Hall.Name
                 })
                 .Where(z => z.Date > z.CurrentDateTime)
                 .ToListAsync();
@@ -112,7 +113,8 @@ namespace CouncilsManagmentSystem.Services
             {
                 z.id,
                 z.Title,
-                z.Date
+                z.Date,
+                z.Hall
             });
         }
 

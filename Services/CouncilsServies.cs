@@ -39,14 +39,22 @@ namespace CouncilsManagmentSystem.Services
             return councils;
         }
 
-        public async Task<IEnumerable<Councils>> GetAllCouncilsByIdType(int typeId)
+        public async Task<IEnumerable<Object>> GetAllCouncilsByIdType(int typeId)
         {
             var type = await _typeCouncilServies.GetCouncilById(typeId);
             if (type == null)
             {
                 throw new ApplicationException("Failed to Add Council please review data .");
             }
-            var councils=await _context.Councils.Where(x=>x.TypeCouncilId==typeId).ToListAsync();
+            var startDate = DateTime.Now.Date;
+            var councils=await _context.Councils.Where(x => x.TypeCouncilId == typeId && x.Date.Date>startDate).Include(z => z.Hall).Select(z => new
+            {
+                id=z.Id
+                , title=z.Title
+                ,Date=z.Date
+                ,Hall=z.Hall.Name
+
+            }).ToListAsync();
             return councils;
         }
 

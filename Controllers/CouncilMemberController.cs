@@ -155,21 +155,21 @@ namespace CouncilsManagmentSystem.Controllers
             {
                 return NotFound($"you have error in your data");
             }
-            string uploadsPath = Path.Combine(_environment.ContentRootPath, "uploadsPDF");
-            if (!Directory.Exists(uploadsPath))
-            {
-                Directory.CreateDirectory(uploadsPath);
-            }
-            string fileName = Path.GetFileName(dto.Pdf.FileName);
-            string filePath = Path.Combine(uploadsPath, fileName);
-            var file = "";
-            using (var stream = new FileStream(filePath, FileMode.Create))
-            {
-                await dto.Pdf.CopyToAsync(stream);
-                file = fileName;
-            }
+            //string uploadsPath = Path.Combine(_environment.ContentRootPath, "uploadsPDF");
+            //if (!Directory.Exists(uploadsPath))
+            //{
+            //    Directory.CreateDirectory(uploadsPath);
+            //}
+            //string fileName = Path.GetFileName(dto.Pdf.FileName);
+            //string filePath = Path.Combine(uploadsPath, fileName);
+            //var file = "";
+            //using (var stream = new FileStream(filePath, FileMode.Create))
+            //{
+            //    await dto.Pdf.CopyToAsync(stream);
+            //    file = fileName;
+            //}
             councilMember.CouncilId= dto.CouncilId;
-            councilMember.Pdf = file;
+          //  councilMember.Pdf = file;
             councilMember.IsAttending = dto.IsAttending;
             councilMember.ReasonNonAttendance= dto.ReasonNonAttendance;
             

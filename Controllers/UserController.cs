@@ -35,14 +35,16 @@ namespace CouncilsManagmentSystem.Controllers
         private readonly IWebHostEnvironment _environment;
         private readonly ICouncilMembersServies _councilMembersServies;
         private readonly IPermissionsServies _permissionsServies;
+        private readonly ITypeCouncilServies _typeCouncilServies;
+        private readonly ICouncilsServies _councilsServies;
 
- 
 
 
-       
+
+
 
         // private readonly JwtConfig _jwtConfig;
-        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService , RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies, ICouncilMembersServies councilMembersServies  , IPermissionsServies permissionsServies )
+        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService, RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies, ICouncilMembersServies councilMembersServies, IPermissionsServies permissionsServies, ITypeCouncilServies typeCouncilServies, ICouncilsServies councilsServies)
         {
             _context = context;
             _usermanager = usermanager;
@@ -56,12 +58,14 @@ namespace CouncilsManagmentSystem.Controllers
             _collageServies = collageServies;
             _departmentServies = departmentServies;
             _councilMembersServies = councilMembersServies;
-            _permissionsServies=permissionsServies;
+            _permissionsServies = permissionsServies;
+            _typeCouncilServies = typeCouncilServies;
+            _councilsServies = councilsServies;
         }
 
- 
 
-       // [Authorize]
+
+        // [Authorize]
         //[Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
         public async Task<IActionResult> Adduser( AddUserDTO user)
@@ -800,7 +804,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
-       
+
 
 
         [Authorize]
@@ -808,13 +812,32 @@ namespace CouncilsManagmentSystem.Controllers
         public async Task<IActionResult> getallnextcouncilbyiduser()
         {
             var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            
-            
-                var user = await _userServies.getuserByEmail(userEmail);
 
-                var councils = await _councilMembersServies.GetAllNextCouncilsbyidmember(user.Id);
-            return Ok(councils);
+            var reObject = new List<Object>();
+            var user = await _userServies.getuserByEmail(userEmail);
+            var councils = await _councilMembersServies.GetAllNextCouncilsbyidmember(user.Id);
+            foreach (var coun in councils)
+            {
+                reObject.Add(coun);
+            }
+
+
+            var charmain = await _typeCouncilServies.GetUserOfTypeCouncil(user.Id);
+            if (charmain != null)
+            {
+                var counCher = await _councilsServies.GetAllCouncilsByIdType(charmain.Id);
+                
+              
+                foreach (var coun in counCher)
+                {
+                   
+                        reObject.Add(coun);
+                    
+                }
+            }
+            return Ok(reObject);
         }
+
 
 
         [Authorize]
