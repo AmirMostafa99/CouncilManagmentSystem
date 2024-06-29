@@ -72,6 +72,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
+
         [Authorize]
         [HttpGet(template: "GetAllCouncils")]
         public async Task<IActionResult> getallcouncils()
@@ -79,6 +80,7 @@ namespace CouncilsManagmentSystem.Controllers
             var councils = await _councilServies.GetallCouncils();
             return Ok(councils);
         }
+
         [Authorize]
         [HttpGet(template: "GetCouncilById")]
         public async Task<IActionResult> getcouncilbyid(int id)

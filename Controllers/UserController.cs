@@ -212,6 +212,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("No file or file empty.");
         }
+
         [Authorize]
         [Authorize(Policy = "RequireAddMembersPermission")]
         [HttpGet(template: "GetAllUsers")]
@@ -220,6 +221,7 @@ namespace CouncilsManagmentSystem.Controllers
             var users = await _userServies.getAllUser();
             return Ok(users);
         }
+
         //////Get user By name
          [Authorize]
        

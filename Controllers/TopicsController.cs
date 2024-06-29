@@ -90,8 +90,8 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(topics);
         }
 
-        [Authorize]
-        [HttpGet("GetAllTopicsByIdCouncil")]
+       [Authorize]
+        [HttpPost("GetAllTopicsByIdCouncil")]
         public async Task<IActionResult> GetAllTopicsByIdCouncil([FromBody] CouncilIdDto dto)
         {
             if (!ModelState.IsValid)

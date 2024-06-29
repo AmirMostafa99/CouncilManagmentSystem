@@ -51,7 +51,14 @@ namespace CouncilsManagmentSystem.Controllers
                         AddMembers = dto.AddMembers,
                         AddTopic = dto.AddTopic,
                         Arrange = dto.Arrange,
-                        AddResult = dto.AddResult
+                        AddResult = dto.AddResult,
+                        AddDepartment = dto.AddDepartment,
+                        AddCollage = dto.AddCollage,
+                        Updatepermission = dto.Updatepermission,
+                        DeactiveUser = dto.DeactiveUser,
+                        UpdateUser = dto.UpdateUser,
+                        AddHall = dto.AddHall
+
                     };
 
                   var newper=  await _permissionsServies.Addpermission(permission);
@@ -68,6 +75,12 @@ namespace CouncilsManagmentSystem.Controllers
                     userPerm.AddTopic = dto.AddTopic;
                     userPerm.Arrange = dto.Arrange;
                     userPerm.AddResult = dto.AddResult;
+                    userPerm.AddDepartment = dto.AddDepartment;
+                    userPerm.AddCollage = dto.AddCollage;
+                    userPerm.Updatepermission = dto.Updatepermission;
+                    userPerm.DeactiveUser = dto.DeactiveUser;
+                    userPerm.UpdateUser = dto.UpdateUser;
+                    userPerm.AddHall = dto.AddHall;
                     var newper = await _permissionsServies.UpdatePermission(userPerm);
                       return Ok(newper);
 
@@ -75,6 +88,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("you have wrong in your data. ");
         }
+
         [Authorize]
         [HttpGet(template:"GetPermissionsUser")]
         public async Task<IActionResult> getpermissionuser(string email)
