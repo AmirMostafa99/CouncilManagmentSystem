@@ -105,6 +105,11 @@ namespace CouncilsManagmentSystem.Controllers
                     CouncilId = dto.CouncilId,
                     MemberId = user.Id
                 };
+                var check = await _councilMemberService.GetcouncilmemberlById(dto.CouncilId, user.Id);
+                if(check != null)
+                {
+                    continue;
+                }
 
                 try
                 {
