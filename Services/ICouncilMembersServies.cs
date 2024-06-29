@@ -16,6 +16,7 @@ namespace CouncilsManagmentSystem.Services
         CouncilMembers updatecouncilmember(CouncilMembers member);
         Task<IEnumerable<CouncilMembers>> GetAllIDMembersbyidCouncil(int id);
         Task<IEnumerable<object>> GetAllCouncilMemberIsNotAtt(int idcouncil);
+        Task<IEnumerable<object>> GetAllLastCouncilsbyidmember(string idmember);
 
     }
 }

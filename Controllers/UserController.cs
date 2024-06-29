@@ -839,6 +839,37 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
 
+        [Authorize]
+        [HttpGet(template: "GetAllLastCouncilforUser")]
+        public async Task<IActionResult> getallLastcouncilbyiduser()
+        {
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            var reObject = new List<Object>();
+            var user = await _userServies.getuserByEmail(userEmail);
+            var councils = await _councilMembersServies.GetAllLastCouncilsbyidmember(user.Id);
+            foreach (var coun in councils)
+            {
+                reObject.Add(coun);
+            }
+
+
+            var charmain = await _typeCouncilServies.GetUserOfTypeCouncil(user.Id);
+            if (charmain != null)
+            {
+                var counCher = await _councilsServies.GetAllLastCouncilsByIdType(charmain.Id);
+
+
+                foreach (var coun in counCher)
+                {
+                    reObject.Add(coun);
+
+                }
+            }
+            return Ok(reObject);
+        }
+
+
 
         [Authorize]
         [HttpGet(template: "Profile")]

@@ -13,6 +13,7 @@ namespace CouncilsManagmentSystem.Services
         Task<string> UpdateCouncil (Councils council);
         Task<IEnumerable<Councils>> GetCouncilSbyIDhalls(int Idhall);
         Task<IEnumerable<Councils>> GetCouncilSbyDate(DateTime date);
+        Task<IEnumerable<Object>> GetAllLastCouncilsByIdType(int typeId);
 
     }
 }

@@ -190,5 +190,38 @@ namespace CouncilsManagmentSystem.Services
             return mem;
 
         }
+
+        public async Task<IEnumerable<object>> GetAllLastCouncilsbyidmember(string idmember)
+        {
+            var user = await _userServies.getuserByid(idmember);
+            if (user == null)
+            {
+                return null;
+            }
+
+            DateTime now = DateTime.Now;
+
+            var councils = await _context.CouncilMembers
+                .Where(x => x.MemberId == idmember)
+                .Include(a => a.Council).ThenInclude(a => a.Hall)
+                .Select(z => new
+                {
+                    id = z.Council.Id,
+                    Date = z.Council.Date,
+                    CurrentDateTime = now,
+                    Title = z.Council.Title,
+                    Hall = z.Council.Hall.Name
+                })
+                .Where(z => z.Date < z.CurrentDateTime)
+                .ToListAsync();
+
+            return councils.Select(z => new
+            {
+                z.id,
+                z.Title,
+                z.Date,
+                z.Hall
+            });
+        }
     }
 }
