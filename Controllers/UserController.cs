@@ -275,95 +275,64 @@ namespace CouncilsManagmentSystem.Controllers
                 return BadRequest("This user not found !");
             }
             var per = await _permissionsServies.CheckPermissionAsync(checkuser.Id, "UpdateUser");
-            if (per==true || checkuser.Id != id)
+            if (per==true || checkuser.Id == id)
             {
-                return Unauthorized("User is not authenticated.");
-            }
+               
             var scheme = HttpContext.Request.Scheme;
             var host = HttpContext.Request.Host;
 
-            if (ModelState.IsValid)
-            {
-                var search = await _userServies.getuserByid(id);
-                if (search == null)
+                if (ModelState.IsValid)
                 {
-                    return BadRequest("This user not found !");
+                    var search = await _userServies.getuserByid(id);
+                    if (search == null)
+                    {
+                        return BadRequest("This user not found !");
+                    }
+
+                    // string path = Path.Combine(_environment.ContentRootPath, "images");
+                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(user.img.FileName);
+                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images"); // Path to uploads folder
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    {
+                        user.img.CopyTo(stream);
+                    }
+
+                    var imageUrl = $"{scheme}://{host}/images/{fileName}";
+
+
+
+                    search.FullName = user.FullName;
+                    search.Email = user.Email;
+                    search.Birthday = user.Birthday;
+                    search.PhoneNumber = user.phone;
+                    search.UserName = user.Email;
+                    search.img = imageUrl;
+                    search.administrative_degree = user.administrative_degree;
+                    search.functional_characteristic = user.functional_characteristic;
+                    search.academic_degree = user.academic_degree;
+                    DateTime now = DateTime.Now;
+                    DateTime startDate = new DateTime(1970, 1, 1);
+
+                    DateTime endDate = DateTime.Now.AddYears(-18);
+
+                    if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
+                    {
+                        _userServies.Updateusert(search);
+                        return Ok(search);
+                    }
+                    else
+                    {
+                        return BadRequest("Please check the Date ");
+                    }
                 }
 
-               // string path = Path.Combine(_environment.ContentRootPath, "images");
-                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(user.img.FileName);
-                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images"); // Path to uploads folder
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var stream = new FileStream(filePath, FileMode.Create))
-                {
-                    user.img.CopyTo(stream);
-                }
-
-                // Save the image URL to the database for the user
-                var imageUrl = $"{scheme}://{host}/images/{fileName}"; // Construct the URL with uploads folder
-                                                                        // Save imageUrl to your database for the user
-
-                
-
-                //if (!Directory.Exists(path))
-                //{
-                //    Directory.CreateDirectory(path);
-                //}
-
-                //if (user.img != null)
-                //{
-                //    string fileExtension = Path.GetExtension(user.img.FileName).ToLowerInvariant();
-
-                   
-                //    //chech 
-                //    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
-                    
-                //    if (!allowedExtensions.Contains(fileExtension))
-                //    {
-                //        return BadRequest("Invalid file extension.");
-                //    }
-
-
-
-                //    path = Path.Combine(path, user.img.FileName);
-
-                //    using (var stream = new FileStream(path, FileMode.Create))
-                //    {
-                //        await user.img.CopyToAsync(stream);
-
-
-                //        search.img = user.img.FileName;
-
-
-
-                //    }
-                //}
-                search.FullName = user.FullName;
-                search.Email = user.Email;
-                search.Birthday = user.Birthday;
-                search.PhoneNumber = user.phone;
-                search.UserName = user.Email;
-                search.img = imageUrl;
-                search.administrative_degree = user.administrative_degree;
-                search.functional_characteristic = user.functional_characteristic;
-                search.academic_degree = user.academic_degree;
-                DateTime now = DateTime.Now;
-                DateTime startDate = new DateTime(1970, 1, 1);
-        
-                DateTime endDate = DateTime.Now.AddYears(-18);
-
-                if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
-                {
-                    _userServies.Updateusert(search);
-                    return Ok(search);
-                }
                 else
                 {
-                    return BadRequest("Please check the Date ");
-                }
-
-
+                    return Unauthorized("User is not authenticated.");
+                
+                 }
                
 
             }
