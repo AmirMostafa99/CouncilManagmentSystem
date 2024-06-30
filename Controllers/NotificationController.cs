@@ -1,7 +1,9 @@
-﻿using CouncilsManagmentSystem.Services;
+﻿using CouncilsManagmentSystem.Models;
+using CouncilsManagmentSystem.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace CouncilsManagmentSystem.Controllers
@@ -12,11 +14,15 @@ namespace CouncilsManagmentSystem.Controllers
     {
         private readonly INotificationServies _notificationServies;
         private readonly IUserServies _userServies;
+        private readonly ICouncilsServies _councilsServies;
+        private readonly ApplicationDbContext _dbContext;
 
-        public NotificationController(INotificationServies notificationServies, IUserServies userServies)
+        public NotificationController(INotificationServies notificationServies, IUserServies userServies, ICouncilsServies councilsServies, ApplicationDbContext dbContext)
         {
             _notificationServies = notificationServies;
             _userServies = userServies;
+            _councilsServies = councilsServies;
+            _dbContext = dbContext;
         }
         [Authorize]
         [HttpGet(template: "GetAllNotificationForUser")]
@@ -52,6 +58,36 @@ namespace CouncilsManagmentSystem.Controllers
 
             return Ok(not);
 
+        }
+
+        [Authorize]
+        [HttpGet(template: "GetDataofcouncilNotification")]
+        public async Task<IActionResult> GetDataofcouncilNotification(int idNot)
+        {
+            var Not = await _notificationServies.GetNotifcationById(idNot);
+            if(Not!=null)
+            {
+                var coun = await _councilsServies.GetCouncilById(Not.CouncilId);
+                if(coun !=null)
+                {
+                    var hall = await _dbContext.Halls.FirstOrDefaultAsync(x => x.Id == coun.HallId);
+                    if(hall!=null)
+                    {
+                        var ob = new { 
+                        Idmember=Not.CouncilMembers,
+                        councilName=coun.Title,
+                        Date=coun.Date,
+                        Hall=hall.Name,
+                        TypeCouncil=coun.TypeCouncilId,
+                        counilId=coun.Id
+                        
+                        };
+                        return Ok(ob);
+                    }
+                }
+                
+            }
+            return Ok();
         }
 
     }

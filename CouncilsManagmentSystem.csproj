@@ -27,8 +27,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="images\" />
+    <Folder Include="wwwroot\images\" />
     <Folder Include="TopicsFiles\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="wwwroot\images\aa.jpg" />
+    <None Include="wwwroot\images\Annotation 2022-09-20 161208.png" />
+    <None Include="wwwroot\images\defaultimage.png" />
+    <None Include="wwwroot\images\Screenshot 2023-05-16 161620.png" />
+    <None Include="wwwroot\images\Screenshot 2023-05-18 174729.png" />
   </ItemGroup>
 
 </Project>

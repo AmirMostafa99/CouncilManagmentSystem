@@ -16,6 +16,8 @@ using OfficeOpenXml;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion.Internal;
 using System.Reflection.PortableExecutable;
 using CouncilsManagmentSystem.Migrations;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 
 namespace CouncilsManagmentSystem.Controllers
 {
@@ -37,6 +39,7 @@ namespace CouncilsManagmentSystem.Controllers
         private readonly IPermissionsServies _permissionsServies;
         private readonly ITypeCouncilServies _typeCouncilServies;
         private readonly ICouncilsServies _councilsServies;
+        private readonly IWebHostEnvironment _webHostEnvironment;
 
 
 
@@ -44,7 +47,7 @@ namespace CouncilsManagmentSystem.Controllers
 
 
         // private readonly JwtConfig _jwtConfig;
-        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService, RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies, ICouncilMembersServies councilMembersServies, IPermissionsServies permissionsServies, ITypeCouncilServies typeCouncilServies, ICouncilsServies councilsServies)
+        public UserController(UserManager<ApplicationUser> usermanager, ApplicationDbContext context, IConfiguration configuration, IMailingService mailingService, RoleManager<IdentityRole> rolemanager, ICollageServies collageServies, IWebHostEnvironment environment, IDepartmentServies departmentServies, IUserServies userServies, ICouncilMembersServies councilMembersServies, IPermissionsServies permissionsServies, ITypeCouncilServies typeCouncilServies, ICouncilsServies councilsServies, IWebHostEnvironment webHostEnvironment)
         {
             _context = context;
             _usermanager = usermanager;
@@ -61,11 +64,12 @@ namespace CouncilsManagmentSystem.Controllers
             _permissionsServies = permissionsServies;
             _typeCouncilServies = typeCouncilServies;
             _councilsServies = councilsServies;
+            _webHostEnvironment = webHostEnvironment;
         }
 
 
 
-         [Authorize]
+        [Authorize]
         [Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
         public async Task<IActionResult> Adduser( AddUserDTO user)
@@ -271,11 +275,12 @@ namespace CouncilsManagmentSystem.Controllers
                 return BadRequest("This user not found !");
             }
             var per = await _permissionsServies.CheckPermissionAsync(checkuser.Id, "UpdateUser");
-            if (!per || checkuser.Id != id)
+            if (per==true || checkuser.Id != id)
             {
                 return Unauthorized("User is not authenticated.");
             }
-
+            var scheme = HttpContext.Request.Scheme;
+            var host = HttpContext.Request.Host;
 
             if (ModelState.IsValid)
             {
@@ -285,47 +290,61 @@ namespace CouncilsManagmentSystem.Controllers
                     return BadRequest("This user not found !");
                 }
 
-                string path = Path.Combine(_environment.ContentRootPath, "images");
+               // string path = Path.Combine(_environment.ContentRootPath, "images");
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(user.img.FileName);
+                var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images"); // Path to uploads folder
+                var filePath = Path.Combine(uploadsFolder, fileName);
 
-
-                if (!Directory.Exists(path))
+                using (var stream = new FileStream(filePath, FileMode.Create))
                 {
-                    Directory.CreateDirectory(path);
+                    user.img.CopyTo(stream);
                 }
 
-                if (user.img != null)
-                {
-                    string fileExtension = Path.GetExtension(user.img.FileName).ToLowerInvariant();
+                // Save the image URL to the database for the user
+                var imageUrl = $"{scheme}://{host}/images/{fileName}"; // Construct the URL with uploads folder
+                                                                        // Save imageUrl to your database for the user
+
+                
+
+                //if (!Directory.Exists(path))
+                //{
+                //    Directory.CreateDirectory(path);
+                //}
+
+                //if (user.img != null)
+                //{
+                //    string fileExtension = Path.GetExtension(user.img.FileName).ToLowerInvariant();
 
                    
-                    //chech 
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+                //    //chech 
+                //    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
                     
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        return BadRequest("Invalid file extension.");
-                    }
+                //    if (!allowedExtensions.Contains(fileExtension))
+                //    {
+                //        return BadRequest("Invalid file extension.");
+                //    }
 
 
 
-                    path = Path.Combine(path, user.img.FileName);
+                //    path = Path.Combine(path, user.img.FileName);
 
-                    using (var stream = new FileStream(path, FileMode.Create))
-                    {
-                        await user.img.CopyToAsync(stream);
-
-
-                        search.img = user.img.FileName;
+                //    using (var stream = new FileStream(path, FileMode.Create))
+                //    {
+                //        await user.img.CopyToAsync(stream);
 
 
+                //        search.img = user.img.FileName;
 
-                    }
-                }
+
+
+                //    }
+                //}
                 search.FullName = user.FullName;
                 search.Email = user.Email;
                 search.Birthday = user.Birthday;
                 search.PhoneNumber = user.phone;
                 search.UserName = user.Email;
+                search.img = imageUrl;
                 search.administrative_degree = user.administrative_degree;
                 search.functional_characteristic = user.functional_characteristic;
                 search.academic_degree = user.academic_degree;
@@ -608,7 +627,7 @@ namespace CouncilsManagmentSystem.Controllers
 
         }
 
-        [Authorize]
+        
         [HttpPost("ConfirmOTP")]
         public async Task<IActionResult> ConfirmOTP([FromBody] ConfirmOTPDto dto)
         {
