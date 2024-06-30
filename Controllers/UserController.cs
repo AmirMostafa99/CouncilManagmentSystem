@@ -680,18 +680,24 @@ namespace CouncilsManagmentSystem.Controllers
             }
 
 
+            existingUser.PasswordHash = _usermanager.PasswordHasher.HashPassword(existingUser, dto.NewPassword);
             var UserPermission = await _permissionsServies.getObjectpermissionByid(existingUser.Id);
             var jwrToken = GenerateJwtToken(existingUser);
             var storeTokenResult = await _usermanager.SetAuthenticationTokenAsync(existingUser, "Default", "JWT", jwrToken);
+            if (!storeTokenResult.Succeeded)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Failed to store the JWT token.");
+            }
+            await _usermanager.UpdateAsync(existingUser);
             return Ok(new AuthenticationResault()
             {
                 Permission = UserPermission,
                 Token = jwrToken,
                 Result = true,
                 Errors = new List<string>()
-                {
-                    "The new password added successfully."
-                },
+         {
+             "The new password added successfully."
+         },
             });
 
         }
