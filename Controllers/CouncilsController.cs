@@ -132,12 +132,13 @@ namespace CouncilsManagmentSystem.Controllers
 
                 var councils = await _councilServies.GetCouncilsByTitle(name);
                 var councilmembers = new List<Object>();
+                var charmain = await _typecouncilservies.GetUserOfTypeCouncil(user.Id);
                 foreach (var councill in councils)
                 {
                     var councilmem = await _councilMembersServies.GetcouncilmemberlById(councill.Id, user.Id);
-                    if (councilmem != null)
+                    if (councilmem != null )
                     {
-                        if (councilmem.IsAttending == true)
+                        if (councilmem.IsAttending == true )
                         {
                             var hall = await _dbContext.Halls.FirstOrDefaultAsync(x => x.Id == councill.HallId);
                             if (hall != null)
@@ -149,6 +150,28 @@ namespace CouncilsManagmentSystem.Controllers
 
                     }
                 }
+                foreach (var councill in councils)
+                {
+                   
+                    if ( charmain != null)
+                    {
+                        if ( charmain.Id == councill.TypeCouncilId)
+                        {
+                            var hall = await _dbContext.Halls.FirstOrDefaultAsync(x => x.Id == councill.HallId);
+                            if (hall != null)
+                            {
+                                var ob = new { councilName = councill.Title, Date = councill.Date, Hall = hall.Name };
+                                councilmembers.Add(ob);
+                            }
+                        }
+
+                    }
+                }
+
+
+
+
+
                 return Ok(councilmembers);
             }
             return BadRequest("you have wrong in your data. ");
@@ -157,11 +180,39 @@ namespace CouncilsManagmentSystem.Controllers
         [HttpGet(template: "GetCouncilBydate")]
         public async Task<IActionResult> getCouncilbydate(DateTime date)
         {
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (userEmail == null)
+            {
+                return NotFound("not authorize");
+            }
+            var user = await _userServies.getuserByEmail(userEmail);
+            if (user == null)
+            {
+                return NotFound("Your date have error");
+            }
 
             if (ModelState.IsValid)
             {
                 var councils = await _councilServies.GetCouncilByDate(date);
-                return Ok(councils);
+      
+                var charmain = await _typecouncilservies.GetUserOfTypeCouncil(user.Id);
+                 
+                if (charmain != null) {
+                   if(councils.TypeCouncilId == charmain.Id)
+                    {
+                        return Ok(councils);
+                    }
+                }
+                var mem = await _councilMembersServies.GetcouncilmemberlById(councils.Id, user.Id);
+                if(mem !=null)
+                {
+                    return Ok(councils);
+                }
+                    
+                                
+
+                return Ok();
             }
             return BadRequest("you have wrong in your data. ");
         }
@@ -230,12 +281,12 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return Ok(councilres);
         }
-       // [Authorize]
+        [Authorize]
         [HttpGet(template: "GetAllCouncilByDate")]
         public async Task<IActionResult> GetAllCouncilByDate(DateTime date)
         {
-            //var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var userEmail = "Mariam.20375785@compit.aun.edu.eg";
+            var userEmail = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+           
             if (userEmail == null)
             {
                 return NotFound("not authorize");
@@ -248,6 +299,7 @@ namespace CouncilsManagmentSystem.Controllers
 
             var councils = await _councilServies.GetCouncilSbyDate(date);
             var councilmembers = new List<Object>();
+            var charmain = await _typecouncilservies.GetUserOfTypeCouncil(user.Id);
             foreach (var councill in councils)
             {
                 var councilmem = await _councilMembersServies.GetcouncilmemberlById(councill.Id, user.Id);
@@ -265,6 +317,23 @@ namespace CouncilsManagmentSystem.Controllers
 
                 }
 
+            }
+            foreach (var councill in councils)
+            {
+
+                if (charmain != null)
+                {
+                    if (charmain.Id == councill.TypeCouncilId)
+                    {
+                        var hall = await _dbContext.Halls.FirstOrDefaultAsync(x => x.Id == councill.HallId);
+                        if (hall != null)
+                        {
+                            var ob = new { councilName = councill.Title, Date = councill.Date, Hall = hall.Name };
+                            councilmembers.Add(ob);
+                        }
+                    }
+
+                }
             }
             return Ok(councilmembers);
 

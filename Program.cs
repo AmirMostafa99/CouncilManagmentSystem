@@ -7,8 +7,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using System.Text;
-using CouncilsManagmentSystem.Seeds;
 using CouncilsManagmentSystem.Configurations;
 using CouncilsManagmentSystem.Seeds;
 using OfficeOpenXml;
@@ -17,8 +15,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Text.Json.Serialization;
 using CouncilsManagmentSystem.notfication;
-using Microsoft.Extensions.DependencyInjection;
-using System.Text.Json.Serialization;
+using Microsoft.Extensions.FileProviders;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -35,23 +32,28 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 // Configure CORS for both React and Flutter development environments
-
-// CORS Configuration
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowSpecificOrigins",
-        builder =>
-        {
-            builder
-                .WithOrigins("http://localhost:3000", "http://localhost:5117")
-                .AllowAnyHeader()
-                .AllowAnyMethod()
-                .AllowCredentials(); // Enable credentials for these specific origins
-        });
-});
 //builder.Services.AddCors();
 builder.Services.AddSignalR();
 
+builder.Services.AddCors(options =>
+
+{
+
+    options.AddPolicy("AllowAll",
+
+        builder =>
+
+        {
+
+            builder
+
+                   .AllowAnyHeader().AllowAnyOrigin()
+
+                   .AllowAnyMethod();//.AllowCredentials();
+
+        });
+
+});
 
 builder.Services.AddTransient<ICollageServies, CollageServies>();
 builder.Services.AddTransient<IDepartmentServies, DepartmentServies>();
@@ -213,26 +215,6 @@ builder.Services.AddSwaggerGen(swagger =>
 });
 
 
-
-
-
-// Add scoped authorization handler
-builder.Services.AddScoped<IAuthorizationHandler, ScopedPermissionsAuthorizationHandler>();
-
-// Configure Mail settings
-builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
-
-// Setup logging
-builder.Services.AddControllersWithViews();
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
-
-
-
-
-
-
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
@@ -244,7 +226,7 @@ app.UseRouting();
 
 
 
-app.UseCors("AllowSpecificOrigins");
+app.UseCors("AllowAll");
 // Enable CORS
 //app.UseCors(c => c.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin());
 app.UseHttpsRedirection();
@@ -254,7 +236,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-//map signalr
 app.MapHub<NotificationHub>("/Notfication");
 
 var scopeFactory = app.Services.GetRequiredService<IServiceScopeFactory>();

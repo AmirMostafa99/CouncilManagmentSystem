@@ -28,7 +28,7 @@ namespace CouncilsManagmentSystem.Services
             {
                 await _context.AddAsync(council);
                 await _context.SaveChangesAsync();
-                var re = new Councils { Id = council.Id, Title = council.Title, Date = council.Date , HallId=council.HallId };
+                var re = new Councils { Id = council.Id, Title = council.Title, Date = council.Date , HallId=council.HallId , TypeCouncilId=council.TypeCouncilId };
                 
                 return re ;
             }

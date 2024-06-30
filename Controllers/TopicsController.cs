@@ -22,7 +22,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-        //[Authorize(Policy = "RequireAddTopicPermission")]
+        
         [HttpPost(template: "AddTopic")]
         public async Task<IActionResult> AddTopic([FromForm] TopicDto topicDto)
         {

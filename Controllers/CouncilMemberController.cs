@@ -253,7 +253,7 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok(users);
         }
 
-       // [Authorize]
+        [Authorize]
         [HttpGet(template: "GetAllReasonsForNonAttendance")]
         public async Task<IActionResult> GetAllReasonsForNonAttendance(int councilId)
         {

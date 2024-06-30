@@ -61,8 +61,8 @@ namespace CouncilsManagmentSystem.Controllers
             return Ok("The Hall Is Deleted");
         }
 
-        //[Authorize]
-        //[Authorize(Policy = "RequireAddHallPermission")]
+        [Authorize]
+        [Authorize(Policy = "RequireAddHallPermission")]
         [HttpPut(template: "UpdateHall")]
         public async Task<IActionResult> UpdateHall([FromBody] HallDTOs Dto)
         {
@@ -88,7 +88,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-        [Authorize(Policy = "RequireAddHallPermission")]
+       
         [HttpPost(template: "SearchHallByName")]
 
         public IActionResult SearchHallsByName([FromBody] SearchHallsByNameDto dto)
@@ -110,7 +110,7 @@ namespace CouncilsManagmentSystem.Controllers
 
         
         [Authorize]
-        [Authorize(Policy = "RequireAddHallPermission")]
+       
         [HttpGet(template: "GetAllHalls")]
         public IActionResult GetAllHalls()
         {
@@ -119,7 +119,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         [Authorize]
-        [Authorize(Policy = "RequireAddHallPermission")]
+        
         [HttpPost("GetHallById")]
         public async Task<IActionResult> GetHallById([FromBody] GetHallByIdDTO request)
         {

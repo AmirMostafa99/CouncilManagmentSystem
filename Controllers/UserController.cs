@@ -65,8 +65,8 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-        // [Authorize]
-        //[Authorize(Policy = "RequireAddMembersPermission")]
+         [Authorize]
+        [Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
         public async Task<IActionResult> Adduser( AddUserDTO user)
         {

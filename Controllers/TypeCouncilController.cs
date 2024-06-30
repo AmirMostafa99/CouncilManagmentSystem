@@ -26,8 +26,8 @@ namespace CouncilsManagmentSystem.Controllers
             _typeCouncilServies = typeCouncilServies;
         }
 
-       // [Authorize]
-       // [Authorize(Policy = "RequireCreateTypeCouncilPermission")]
+        [Authorize]
+        [Authorize(Policy = "RequireCreateTypeCouncilPermission")]
         [HttpPost(template: "AddTypeCouncil")]
         public async Task<IActionResult> addTypeCouncil([FromBody] AddTypeCouncilsDTO type)
         {
@@ -60,6 +60,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("There is an error in your data.");
         }
+        [Authorize]
         [HttpGet(template: "Get All types")]
         public async Task<IActionResult> getalltypes()
         {
@@ -76,7 +77,7 @@ namespace CouncilsManagmentSystem.Controllers
             //var user = await _userServies.getuserByid(type.ChairmanCouncilId);
             return Ok(type);
         }
-
+        [Authorize]
         [HttpGet("Get Chairnam of council")]
         public async Task<IActionResult> getchairman(int idCouncil)
         {
@@ -89,6 +90,7 @@ namespace CouncilsManagmentSystem.Controllers
             }
             return BadRequest("There is an error in your data.");
         }
+        [Authorize]
 
         [HttpGet("Get Secretary of council")]
         public async Task<IActionResult> getSecretary(int idCouncil)

@@ -37,6 +37,7 @@ namespace CouncilsManagmentSystem.Controllers
         }
 
         //get all departments
+        [Authorize]
         [HttpGet(template: "GetAllDepartments")]
         public async Task<IActionResult> getalldepartment()
         {
@@ -78,6 +79,7 @@ namespace CouncilsManagmentSystem.Controllers
 
 
         ////Gett all department for id_collage
+        [Authorize]
         [HttpGet(template: "GetallDepartmentByCollageId")]
         public async Task<IActionResult> getAllDepByCollageId(int id)
         {
