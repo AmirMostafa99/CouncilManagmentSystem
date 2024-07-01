@@ -19,7 +19,6 @@ namespace CouncilsManagmentSystem.Controllers
 
 
         [Authorize]
-
         [Authorize(Policy = "RequireAddHallPermission")]
         [HttpPost(template: "AddHall")]
 
