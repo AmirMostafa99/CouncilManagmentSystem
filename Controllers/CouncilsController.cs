@@ -201,13 +201,26 @@ namespace CouncilsManagmentSystem.Controllers
                 if (charmain != null) {
                    if(councils.TypeCouncilId == charmain.Id)
                     {
-                        return Ok(councils);
+                        var hall = await _dbContext.Halls.FirstOrDefaultAsync(x => x.Id == councils.HallId);
+                        if (hall != null)
+                        {
+                            var ob = new { councilName = councils.Title, Date = councils.Date, typecouncil = councils.TypeCouncilId, hall = hall.Name };
+                            return Ok(ob);
+                        }
+                       
                     }
                 }
                 var mem = await _councilMembersServies.GetcouncilmemberlById(councils.Id, user.Id);
                 if(mem !=null)
                 {
-                    return Ok(councils);
+                    var hall = await _dbContext.Halls.FirstOrDefaultAsync(x => x.Id == councils.HallId);
+                    if (hall != null)
+                    {
+                        var ob = new { councilName = councils.Title, Date = councils.Date, typecouncil = councils.TypeCouncilId, hall = hall.Name };
+                        return Ok(ob);
+                    }
+                    
+                  
                 }
                     
                                 

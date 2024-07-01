@@ -288,27 +288,39 @@ namespace CouncilsManagmentSystem.Controllers
                     {
                         return BadRequest("This user not found !");
                     }
-
-                    // string path = Path.Combine(_environment.ContentRootPath, "images");
-                    var fileName = Guid.NewGuid().ToString() + Path.GetExtension(user.img.FileName);
-                    var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images"); // Path to uploads folder
-                    var filePath = Path.Combine(uploadsFolder, fileName);
-
-                    using (var stream = new FileStream(filePath, FileMode.Create))
+                    if (user.img != null)
                     {
-                        user.img.CopyTo(stream);
+                        string fileExtension = Path.GetExtension(user.img.FileName).ToLowerInvariant();
+
+
+                        //chech 
+                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png", ".gif" };
+
+                        if (!allowedExtensions.Contains(fileExtension))
+                        {
+                            return BadRequest("Invalid file extension.");
+                        }
+
+                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(user.img.FileName);
+                        var uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "images"); // Path to uploads folder
+                        var filePath = Path.Combine(uploadsFolder, fileName);
+
+                        using (var stream = new FileStream(filePath, FileMode.Create))
+                        {
+                            user.img.CopyTo(stream);
+                        }
+
+                        var imageUrl = $"{scheme}://{host}/images/{fileName}";
+                        search.img = fileName;
+
                     }
-
-                    var imageUrl = $"{scheme}://{host}/images/{fileName}";
-
-
 
                     search.FullName = user.FullName;
                     search.Email = user.Email;
                     search.Birthday = user.Birthday;
                     search.PhoneNumber = user.phone;
                     search.UserName = user.Email;
-                    search.img = imageUrl;
+                   
                     search.administrative_degree = user.administrative_degree;
                     search.functional_characteristic = user.functional_characteristic;
                     search.academic_degree = user.academic_degree;
