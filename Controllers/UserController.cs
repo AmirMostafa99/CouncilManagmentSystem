@@ -18,6 +18,7 @@ using System.Reflection.PortableExecutable;
 using CouncilsManagmentSystem.Migrations;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using CouncilsManagmentSystem.Seeds;
 
 namespace CouncilsManagmentSystem.Controllers
 {
@@ -69,8 +70,8 @@ namespace CouncilsManagmentSystem.Controllers
 
 
 
-        [Authorize]
-        [Authorize(Policy = "RequireAddMembersPermission")]
+        //[Authorize]
+        //[Authorize(Policy = "RequireAddMembersPermission")]
         [HttpPost(template: "AddUserManual")]
         public async Task<IActionResult> Adduser( AddUserDTO user)
         {
@@ -103,6 +104,28 @@ namespace CouncilsManagmentSystem.Controllers
                 if (adduser.Birthday < now && adduser.Birthday > startDate && adduser.Birthday < endDate)
                 {
                     await _usermanager.CreateAsync(adduser);
+                    await _context.SaveChangesAsync();
+                    var permissions = new Permissionss
+                    {
+                        userId = adduser.Id,
+                        AddCouncil = false,
+                        EditCouncil = false,
+                        CreateTypeCouncil = false,
+                        EditTypeCouncil = false,
+                        AddMembersByExcil = false,
+                        AddMembers = false,
+                        AddTopic = true,
+                        Arrange = false,
+                        AddResult = false,
+                        AddDepartment = false,
+                        AddCollage = false,
+                        Updatepermission = false,
+                        DeactiveUser = false,
+                        UpdateUser = false,
+                        AddHall = false
+
+                    };
+                    await _context.AddAsync(permissions);
                     await _context.SaveChangesAsync();
                     return Ok("User successfully added");
                 }
@@ -199,6 +222,28 @@ namespace CouncilsManagmentSystem.Controllers
                             if (user.Birthday < now && user.Birthday > startDate && user.Birthday < endDate)
                             {
                                 await _userServies.CreateUserAsync(user);
+                                var permissions = new Permissionss
+                                {
+                                    userId = user.Id,
+                                    AddCouncil = false,
+                                    EditCouncil = false,
+                                    CreateTypeCouncil = false,
+                                    EditTypeCouncil = false,
+                                    AddMembersByExcil = false,
+                                    AddMembers = false,
+                                    AddTopic = true,
+                                    Arrange = false,
+                                    AddResult = false,
+                                    AddDepartment = false,
+                                    AddCollage = false,
+                                    Updatepermission = false,
+                                    DeactiveUser = false,
+                                    UpdateUser = false,
+                                    AddHall = false
+
+                                };
+                                await _context.AddAsync(permissions);
+                                await _context.SaveChangesAsync();
                             }
                             else
                             {
