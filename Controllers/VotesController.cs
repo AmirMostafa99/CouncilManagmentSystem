@@ -40,7 +40,7 @@ namespace CouncilsManagmentSystem.Controllers
             _context.Votes.Add(vote);
             await _context.SaveChangesAsync();
 
-            return Ok("Vote created successfully.");
+            return Ok(vote);
         }
 
         [Authorize]
